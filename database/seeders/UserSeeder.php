@@ -36,6 +36,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Administrator Sekolah',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'admin',
                 'nis_nip' => '198501012010011001',
                 'phone' => '081211112222',
@@ -48,6 +49,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Bpk. Guru Pembimbing',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'guru_pembimbing',
                 'nis_nip' => '198703152015021002',
                 'phone' => '081233334444',
@@ -60,6 +62,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Pembimbing DUDI',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'pembimbing_dudi',
                 'company_id' => $company->id,
                 'phone' => '081255556666',
@@ -72,6 +75,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Siswa Magang Amaliah',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'siswa',
                 'nis_nip' => '12345678',
                 'company_id' => $company->id,

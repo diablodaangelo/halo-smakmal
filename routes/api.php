@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DailyJournalController;
+use App\Http\Controllers\Api\JournalReviewController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\StudentPlacementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +57,19 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [DailyJournalController::class, 'store']);
             Route::get('/{id}', [DailyJournalController::class, 'show']);
             Route::post('/{id}', [DailyJournalController::class, 'update']);
+        });
+
+        // Mentor Review & Journal Approval (Pembimbing DUDI, Guru Pembimbing, Admin)
+        Route::middleware('role:pembimbing_dudi,guru_pembimbing,admin')->prefix('reviews')->group(function () {
+            Route::get('/journals', [JournalReviewController::class, 'index']);
+            Route::get('/journals/{id}', [JournalReviewController::class, 'show']);
+            Route::put('/journals/{id}', [JournalReviewController::class, 'review']);
+        });
+
+        // Reports & Aggregation (Admin & Guru Pembimbing)
+        Route::middleware('role:guru_pembimbing,admin')->prefix('reports')->group(function () {
+            Route::get('/attendances', [ReportController::class, 'attendanceSummary']);
+            Route::get('/journals', [ReportController::class, 'journalRecap']);
         });
 
         // Role-Based Test Endpoints (RBAC)

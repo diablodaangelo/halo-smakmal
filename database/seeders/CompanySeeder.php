@@ -50,6 +50,7 @@ class CompanySeeder extends Seeder
             [
                 'name' => 'Budi Santoso',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'siswa',
                 'nis_nip' => '2122001',
                 'company_id' => $companyTelkom->id,
@@ -62,6 +63,7 @@ class CompanySeeder extends Seeder
             [
                 'name' => 'Siti Nurhaliza',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'siswa',
                 'nis_nip' => '2122002',
                 'company_id' => $companyTelkom->id,
@@ -75,6 +77,7 @@ class CompanySeeder extends Seeder
             [
                 'name' => 'Rizky Ramadhan',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'siswa',
                 'nis_nip' => '2122003',
                 'company_id' => null,
@@ -87,6 +90,7 @@ class CompanySeeder extends Seeder
             [
                 'name' => 'Dewi Sartika',
                 'password' => $defaultPassword,
+                'email_verified_at' => now(),
                 'role' => 'siswa',
                 'nis_nip' => '2122004',
                 'company_id' => null,
