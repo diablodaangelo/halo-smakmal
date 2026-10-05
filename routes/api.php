@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\DailyJournalController;
 use App\Http\Controllers\Api\StudentPlacementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,14 @@ Route::prefix('v1')->group(function () {
             Route::post('/check-out', [AttendanceController::class, 'checkOut']);
             Route::get('/today', [AttendanceController::class, 'todayStatus']);
             Route::get('/history', [AttendanceController::class, 'history']);
+        });
+
+        // Daily Journal & Prayer Log Module (Siswa)
+        Route::middleware('role:siswa')->prefix('journals')->group(function () {
+            Route::get('/', [DailyJournalController::class, 'myJournals']);
+            Route::post('/', [DailyJournalController::class, 'store']);
+            Route::get('/{id}', [DailyJournalController::class, 'show']);
+            Route::post('/{id}', [DailyJournalController::class, 'update']);
         });
 
         // Role-Based Test Endpoints (RBAC)
