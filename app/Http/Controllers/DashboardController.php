@@ -126,19 +126,15 @@ class DashboardController extends Controller
                 ->get();
         } else {
             // Siswa
-            $todayAttendance = Attendance::where('user_id', $user->id)
-                ->whereDate('date', $today)
-                ->first();
+            $user->load(['company', 'mentorTeacher']);
 
-            $todayJournal = DailyJournal::with('prayerLogs')
-                ->where('user_id', $user->id)
+            $todayAttendance = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $today)
                 ->first();
 
             $totalHadir = Attendance::where('user_id', $user->id)->where('status', 'hadir')->count();
             $totalTerlambat = Attendance::where('user_id', $user->id)->where('status', 'terlambat')->count();
-            $totalJournals = DailyJournal::where('user_id', $user->id)->count();
-            $approvedJournals = DailyJournal::where('user_id', $user->id)->where('status', 'approved')->count();
+            $totalPresensi = $totalHadir + $totalTerlambat;
 
             $data['stats'] = [
                 'has_checked_in' => (bool) $todayAttendance,
@@ -146,20 +142,16 @@ class DashboardController extends Controller
                 'check_in_time' => $todayAttendance?->check_in_time,
                 'check_out_time' => $todayAttendance?->check_out_time,
                 'attendance_status' => $todayAttendance?->status,
-                'has_submitted_journal' => (bool) $todayJournal,
-                'journal_status' => $todayJournal?->status,
                 'total_hadir' => $totalHadir,
                 'total_terlambat' => $totalTerlambat,
-                'total_journals' => $totalJournals,
-                'approved_journals' => $approvedJournals,
+                'total_presensi' => $totalPresensi,
+                'punctuality_rate' => $totalPresensi > 0 ? round(($totalHadir / $totalPresensi) * 100, 1) : 0,
             ];
 
             $data['today_attendance'] = $todayAttendance;
-            $data['today_journal'] = $todayJournal;
-            $data['recent_journals'] = DailyJournal::where('user_id', $user->id)
-                ->with('prayerLogs')
-                ->latest()
-                ->take(5)
+            $data['recent_attendances'] = Attendance::where('user_id', $user->id)
+                ->latest('date')
+                ->take(7)
                 ->get();
         }
 

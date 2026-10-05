@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    BookOpen,
     Building2,
     CalendarCheck,
     ClipboardCheck,
@@ -79,13 +80,13 @@ export function AppSidebar() {
     } else if (role === 'siswa') {
         navItems.push(
             {
-                title: 'Presensi PKL',
-                href: '/dashboard',
-                icon: CalendarCheck,
+                title: 'Jurnal Harian PKL',
+                href: '/student/journals',
+                icon: BookOpen,
             },
             {
-                title: 'Jurnal & Salat',
-                href: '/dashboard',
+                title: 'Jadwal & Log Salat',
+                href: '/student/prayers',
                 icon: ClipboardCheck,
             }
         );
