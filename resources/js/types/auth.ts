@@ -2,6 +2,28 @@ export type User = {
     id: number;
     name: string;
     email: string;
+    role: 'admin' | 'guru_pembimbing' | 'pembimbing_dudi' | 'siswa';
+    nis_nip?: string | null;
+    phone_number?: string | null;
+    company_id?: number | null;
+    mentor_teacher_id?: number | null;
+    company?: {
+        id: number;
+        name: string;
+        address: string;
+        latitude: number;
+        longitude: number;
+        radius_meters: number;
+        check_in_start: string;
+        check_in_end: string;
+        check_out_start: string;
+    } | null;
+    mentor_teacher?: {
+        id: number;
+        name: string;
+        nis_nip?: string | null;
+        email?: string;
+    } | null;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
