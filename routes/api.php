@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\StudentPlacementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +24,19 @@ Route::prefix('v1')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::get('/me', [AuthController::class, 'me']);
+        });
+
+        // Master Data Management & Placements (Admin & Guru Pembimbing)
+        Route::middleware('role:admin,guru_pembimbing')->group(function () {
+            // Companies CRUD
+            Route::apiResource('companies', CompanyController::class);
+
+            // Student Placements
+            Route::prefix('placements')->group(function () {
+                Route::get('/unassigned-students', [StudentPlacementController::class, 'getUnassignedStudents']);
+                Route::post('/assign', [StudentPlacementController::class, 'assign']);
+                Route::post('/unassign', [StudentPlacementController::class, 'unassign']);
+            });
         });
 
         // Role-Based Test Endpoints (RBAC)
