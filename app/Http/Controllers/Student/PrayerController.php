@@ -23,7 +23,7 @@ class PrayerController extends Controller
         $todayPrayers = PrayerLog::where('user_id', $user->id)
             ->whereDate('date', $today)
             ->get()
-            ->keyBy('prayer_name');
+            ->keyBy('prayer_type');
 
         $prayerHistory = PrayerLog::where('user_id', $user->id)
             ->latest('date')
@@ -79,7 +79,7 @@ class PrayerController extends Controller
             [
                 'user_id' => $user->id,
                 'date' => $today,
-                'prayer_name' => $validated['prayer_name'],
+                'prayer_type' => $validated['prayer_name'],
             ],
             [
                 'status' => $validated['status'],
