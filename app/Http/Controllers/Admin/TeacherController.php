@@ -63,6 +63,8 @@ class TeacherController extends Controller
         $validated['email_verified_at'] = now();
         $validated['company_id'] = null;
         $validated['mentor_teacher_id'] = null;
+        $validated['phone'] = $validated['phone_number'] ?? null;
+        unset($validated['phone_number']);
 
         User::create($validated);
 
@@ -89,6 +91,11 @@ class TeacherController extends Controller
             'nis_nip.unique' => 'NIP sudah terdaftar pada guru lain.',
             'email.unique' => 'Email sudah terdaftar.',
         ]);
+
+        if (array_key_exists('phone_number', $validated)) {
+            $validated['phone'] = $validated['phone_number'];
+            unset($validated['phone_number']);
+        }
 
         if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);

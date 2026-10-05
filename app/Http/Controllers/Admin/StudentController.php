@@ -87,6 +87,8 @@ class StudentController extends Controller
         $validated['role'] = 'siswa';
         $validated['password'] = Hash::make($validated['password']);
         $validated['email_verified_at'] = now();
+        $validated['phone'] = $validated['phone_number'] ?? null;
+        unset($validated['phone_number']);
 
         User::create($validated);
 
@@ -114,6 +116,11 @@ class StudentController extends Controller
             'nis_nip.unique' => 'NIS / NISN sudah terdaftar.',
             'email.unique' => 'Email sudah terdaftar.',
         ]);
+
+        if (array_key_exists('phone_number', $validated)) {
+            $validated['phone'] = $validated['phone_number'];
+            unset($validated['phone_number']);
+        }
 
         if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);

@@ -36,6 +36,23 @@ class User extends Authenticatable implements PasskeyUser
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'phone_number',
+    ];
+
+    /**
+     * Get phone_number accessor alias for phone.
+     */
+    public function getPhoneNumberAttribute(): ?string
+    {
+        return $this->attributes['phone'] ?? null;
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
@@ -81,6 +98,14 @@ class User extends Authenticatable implements PasskeyUser
      * Get the students guided by this teacher.
      */
     public function guidedStudents(): HasMany
+    {
+        return $this->hasMany(User::class, 'mentor_teacher_id');
+    }
+
+    /**
+     * Alias for guidedStudents.
+     */
+    public function mentoredStudents(): HasMany
     {
         return $this->hasMany(User::class, 'mentor_teacher_id');
     }
