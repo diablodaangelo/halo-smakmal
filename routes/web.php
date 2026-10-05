@@ -13,8 +13,11 @@ Route::middleware(['auth'])->group(function () {
         // Master Data Perusahaan / DUDI
         Route::resource('companies', \App\Http\Controllers\Admin\CompanyController::class)->except(['create', 'edit', 'show']);
 
-        // Kelola Pengguna (Siswa & Guru Pembimbing)
-        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['create', 'edit', 'show']);
+        // Kelola Guru Pembimbing
+        Route::resource('teachers', \App\Http\Controllers\Admin\TeacherController::class)->except(['create', 'edit', 'show']);
+
+        // Kelola Siswa PKL
+        Route::resource('students', \App\Http\Controllers\Admin\StudentController::class)->except(['create', 'edit', 'show']);
     });
 });
 

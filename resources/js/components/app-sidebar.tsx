@@ -40,13 +40,18 @@ export function AppSidebar() {
     if (role === 'admin') {
         navItems.push(
             {
-                title: 'Data DUDI / Kantor',
+                title: 'Master DUDI',
                 href: '/admin/companies',
                 icon: Building2,
             },
             {
-                title: 'Kelola Pengguna',
-                href: '/admin/users',
+                title: 'Kelola Guru',
+                href: '/admin/teachers',
+                icon: GraduationCap,
+            },
+            {
+                title: 'Kelola Siswa',
+                href: '/admin/students',
                 icon: Users,
             }
         );
