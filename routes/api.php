@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\StudentPlacementController;
 use Illuminate\Http\Request;
@@ -37,6 +38,14 @@ Route::prefix('v1')->group(function () {
                 Route::post('/assign', [StudentPlacementController::class, 'assign']);
                 Route::post('/unassign', [StudentPlacementController::class, 'unassign']);
             });
+        });
+
+        // Attendance Module (Siswa)
+        Route::middleware('role:siswa')->prefix('attendance')->group(function () {
+            Route::post('/check-in', [AttendanceController::class, 'checkIn']);
+            Route::post('/check-out', [AttendanceController::class, 'checkOut']);
+            Route::get('/today', [AttendanceController::class, 'todayStatus']);
+            Route::get('/history', [AttendanceController::class, 'history']);
         });
 
         // Role-Based Test Endpoints (RBAC)
