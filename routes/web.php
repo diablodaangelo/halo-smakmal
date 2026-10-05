@@ -22,7 +22,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Student (Siswa) Group Routes
     Route::middleware(['check.role:siswa'])->prefix('student')->name('student.')->group(function () {
-        // Attendance Check-in & Check-out Actions
+        // Attendance History & Live Actions
+        Route::get('attendances', [\App\Http\Controllers\Student\AttendanceController::class, 'index'])->name('attendances.index');
         Route::post('attendance/check-in', [\App\Http\Controllers\Student\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
         Route::post('attendance/check-out', [\App\Http\Controllers\Student\AttendanceController::class, 'checkOut'])->name('attendance.check-out');
 
@@ -34,6 +35,19 @@ Route::middleware(['auth'])->group(function () {
         // Jadwal & Log Salat
         Route::get('prayers', [\App\Http\Controllers\Student\PrayerController::class, 'index'])->name('prayers.index');
         Route::post('prayers', [\App\Http\Controllers\Student\PrayerController::class, 'store'])->name('prayers.store');
+    });
+
+    // Teacher (Guru Pembimbing) Group Routes
+    Route::middleware(['check.role:guru_pembimbing'])->prefix('teacher')->name('teacher.')->group(function () {
+        // Presensi Siswa Binaan
+        Route::get('attendances', [\App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendances.index');
+
+        // Review Jurnal Siswa
+        Route::get('journals', [\App\Http\Controllers\Teacher\JournalReviewController::class, 'index'])->name('journals.index');
+        Route::post('journals/{journal}/review', [\App\Http\Controllers\Teacher\JournalReviewController::class, 'update'])->name('journals.update');
+
+        // Review Salat Siswa
+        Route::get('prayers', [\App\Http\Controllers\Teacher\PrayerReviewController::class, 'index'])->name('prayers.index');
     });
 });
 

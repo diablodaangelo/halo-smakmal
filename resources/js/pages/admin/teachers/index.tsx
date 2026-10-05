@@ -297,7 +297,7 @@ export default function TeachersIndex({ teachers, filters, errors }: Props) {
 
             {/* Create / Edit Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md max-h-[88vh] overflow-y-auto p-4 sm:p-6">
                     <DialogHeader>
                         <DialogTitle>
                             {editingTeacher ? 'Edit Data Guru Pembimbing' : 'Tambah Guru Pembimbing Baru'}

@@ -18,6 +18,7 @@ class DailyJournal extends Model
      */
     protected $fillable = [
         'user_id',
+        'day_number',
         'attendance_id',
         'date',
         'work_summary',

@@ -14,12 +14,18 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display the dynamic role-based PKL dashboard.
-     */
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $user = $request->user()->load('company');
+
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.students.index');
+        }
+
+        if ($user->role === 'guru_pembimbing') {
+            return redirect()->route('teacher.attendances.index');
+        }
+
         $today = Carbon::today()->toDateString();
 
         $data = [

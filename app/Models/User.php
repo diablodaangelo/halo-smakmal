@@ -25,6 +25,7 @@ class User extends Authenticatable implements PasskeyUser
      */
     protected $fillable = [
         'name',
+        'nickname',
         'email',
         'password',
         'role',
@@ -42,7 +43,16 @@ class User extends Authenticatable implements PasskeyUser
      */
     protected $appends = [
         'phone_number',
+        'avatar_url',
     ];
+
+    /**
+     * Get avatar_url accessor.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar ? asset('storage/' . $this->avatar) : null;
+    }
 
     /**
      * Get phone_number accessor alias for phone.
@@ -124,5 +134,13 @@ class User extends Authenticatable implements PasskeyUser
     public function dailyJournals(): HasMany
     {
         return $this->hasMany(DailyJournal::class);
+    }
+
+    /**
+     * Get the prayer logs for the user.
+     */
+    public function prayerLogs(): HasMany
+    {
+        return $this->hasMany(PrayerLog::class);
     }
 }

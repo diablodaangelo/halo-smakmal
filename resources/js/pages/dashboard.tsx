@@ -39,6 +39,7 @@ interface DashboardProps {
     user: {
         id: number;
         name: string;
+        nickname?: string | null;
         email: string;
         role: 'admin' | 'guru_pembimbing' | 'pembimbing_dudi' | 'siswa';
         nis_nip?: string;
@@ -271,7 +272,7 @@ export default function Dashboard({
                                 </span>
                             </div>
                             <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-                                Halo, {user?.name || 'Pengguna'} 👋
+                                Halo, {user?.nickname || user?.name || 'Pengguna'} 👋
                             </h1>
                             <p className="mt-1 text-sm text-emerald-100 sm:text-base">
                                 {role === 'siswa'
@@ -624,6 +625,27 @@ export default function Dashboard({
                             <div className="flex flex-col gap-4">
                                 <Card className="border-neutral-200 dark:border-neutral-800 p-5 hover:border-emerald-500/50 transition shadow-sm">
                                     <div className="flex items-start justify-between">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                                            <Calendar className="h-5 w-5" />
+                                        </div>
+                                        <Link
+                                            href="/student/attendances"
+                                            className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
+                                        >
+                                            <span>Lihat Riwayat</span>
+                                            <ArrowRight className="h-3.5 w-3.5" />
+                                        </Link>
+                                    </div>
+                                    <h3 className="mt-3 font-bold text-sm text-neutral-900 dark:text-white">
+                                        Riwayat Presensi Lengkap
+                                    </h3>
+                                    <p className="mt-1 text-xs text-neutral-500">
+                                        Lihat log presensi harian, foto selfie, verifikasi radius GPS kantor, dan jam kerja.
+                                    </p>
+                                </Card>
+
+                                <Card className="border-neutral-200 dark:border-neutral-800 p-5 hover:border-emerald-500/50 transition shadow-sm">
+                                    <div className="flex items-start justify-between">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300">
                                             <BookOpen className="h-5 w-5" />
                                         </div>
@@ -666,104 +688,62 @@ export default function Dashboard({
                             </div>
                         </div>
 
-                        {/* Analisis & Statistik Kehadiran */}
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                            <Card className="border-neutral-200 dark:border-neutral-800">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-xs font-medium text-neutral-500">Total Hari Masuk</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{stats?.total_presensi ?? 0} Hari</div>
-                                    <p className="text-[11px] text-neutral-400">Terekam di sistem</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-neutral-200 dark:border-neutral-800">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-xs font-medium text-emerald-600">Hadir Tepat Waktu</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-emerald-600">{stats?.total_hadir ?? 0} Hari</div>
-                                    <p className="text-[11px] text-neutral-400">Sebelum batas masuk</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-neutral-200 dark:border-neutral-800">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-xs font-medium text-amber-600">Terlambat Masuk</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-amber-600">{stats?.total_terlambat ?? 0} Hari</div>
-                                    <p className="text-[11px] text-neutral-400">Lewat batas waktu</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-neutral-200 dark:border-neutral-800">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-xs font-medium text-blue-600">Ketepatan Waktu</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-blue-600">{stats?.punctuality_rate ?? 0}%</div>
-                                    <p className="text-[11px] text-neutral-400">Tingkat kedisiplinan</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* Riwayat Presensi Terbaru */}
-                        <Card className="border-neutral-200 dark:border-neutral-800">
-                            <CardHeader className="border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-base font-semibold">
-                                        Riwayat Presensi Terbaru
-                                    </CardTitle>
-                                    <span className="text-xs text-neutral-500">7 Catatan Terakhir</span>
-                                </div>
-                            </CardHeader>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="border-b border-neutral-200 bg-neutral-50/75 text-xs font-semibold uppercase text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-                                        <tr>
-                                            <th className="px-6 py-3.5">Tanggal</th>
-                                            <th className="px-6 py-3.5">Jam Masuk</th>
-                                            <th className="px-6 py-3.5">Jam Pulang</th>
-                                            <th className="px-6 py-3.5 text-center">Status Kehadiran</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                                        {recent_attendances.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="py-8 text-center text-neutral-500">
-                                                    Belum ada riwayat presensi yang terekam.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            recent_attendances.map((att) => (
-                                                <tr key={att.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50">
-                                                    <td className="px-6 py-4 font-mono text-xs text-neutral-700 dark:text-neutral-300">
-                                                        {att.date}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-xs font-mono">
-                                                        {att.check_in_time ? `${att.check_in_time} WIB` : '-'}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-xs font-mono">
-                                                        {att.check_out_time ? `${att.check_out_time} WIB` : '-'}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                                            att.status === 'hadir'
-                                                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                                                : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                                                        }`}>
-                                                            {att.status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
+                        {/* Analisis & Statistik Kehadiran PKL */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-base font-bold text-neutral-900 dark:text-white">
+                                    Analisis & Kedisiplinan Kehadiran
+                                </h2>
+                                <Button asChild variant="ghost" size="sm" className="text-xs text-emerald-600">
+                                    <Link href="/student/attendances">
+                                        <span>Buka Rekap Detail</span>
+                                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                                    </Link>
+                                </Button>
                             </div>
-                        </Card>
+
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                <Card className="border-neutral-200 dark:border-neutral-800">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-xs font-medium text-neutral-500">Total Hari Masuk</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">{stats?.total_presensi ?? 0} Hari</div>
+                                        <p className="text-[11px] text-neutral-400">Terekam di sistem</p>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-neutral-200 dark:border-neutral-800">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-xs font-medium text-emerald-600">Hadir Tepat Waktu</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold text-emerald-600">{stats?.total_hadir ?? 0} Hari</div>
+                                        <p className="text-[11px] text-neutral-400">Sebelum batas masuk</p>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-neutral-200 dark:border-neutral-800">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-xs font-medium text-amber-600">Terlambat Masuk</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold text-amber-600">{stats?.total_terlambat ?? 0} Hari</div>
+                                        <p className="text-[11px] text-neutral-400">Lewat batas waktu</p>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-neutral-200 dark:border-neutral-800">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-xs font-medium text-blue-600">Ketepatan Waktu</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold text-blue-600">{stats?.punctuality_rate ?? 0}%</div>
+                                        <p className="text-[11px] text-neutral-400">Tingkat kedisiplinan</p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

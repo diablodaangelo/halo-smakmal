@@ -1,30 +1,21 @@
 import { Link } from '@inertiajs/react';
+import { Lock, User } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
-import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
+const tabItems = [
     {
-        title: 'Profile',
+        title: 'Profil & Foto',
         href: edit(),
-        icon: null,
+        icon: User,
     },
     {
-        title: 'Security',
+        title: 'Keamanan / Password',
         href: editSecurity(),
-        icon: null,
-    },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-        icon: null,
+        icon: Lock,
     },
 ];
 
@@ -32,46 +23,43 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
-        <div className="px-4 py-6">
-            <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
-            />
+        <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
+            {/* Header */}
+            <div className="border-b border-neutral-200 dark:border-neutral-800 pb-4">
+                <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                    Pengaturan Akun
+                </h1>
+                <p className="mt-0.5 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
+                    Kelola foto profil, nama panggilan interaktif, dan kata sandi akun Anda.
+                </p>
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav
-                        className="flex flex-col space-y-1 space-x-0"
-                        aria-label="Settings"
-                    >
-                        {sidebarNavItems.map((item, index) => (
-                            <Button
+                {/* Horizontal Navigation Tabs (No nested sidebar) */}
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                    {tabItems.map((item, index) => {
+                        const active = isCurrentOrParentUrl(item.href);
+                        const Icon = item.icon;
+                        return (
+                            <Link
                                 key={`${toUrl(item.href)}-${index}`}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isCurrentOrParentUrl(item.href),
-                                })}
+                                href={item.href}
+                                className={cn(
+                                    'inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition shadow-2xs',
+                                    active
+                                        ? 'bg-emerald-600 text-white shadow-xs'
+                                        : 'bg-white text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-900 dark:text-neutral-300 dark:border-neutral-800 dark:hover:bg-neutral-800'
+                                )}
                             >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="h-4 w-4" />
-                                    )}
-                                    {item.title}
-                                </Link>
-                            </Button>
-                        ))}
-                    </nav>
-                </aside>
-
-                <Separator className="my-6 lg:hidden" />
-
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">
-                        {children}
-                    </section>
+                                <Icon className="h-3.5 w-3.5" />
+                                <span>{item.title}</span>
+                            </Link>
+                        );
+                    })}
                 </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="w-full">
+                {children}
             </div>
         </div>
     );

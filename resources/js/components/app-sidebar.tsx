@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
 import {
+    AlertTriangle,
     BookOpen,
     Building2,
     CalendarCheck,
@@ -7,6 +7,8 @@ import {
     GitMerge,
     GraduationCap,
     LayoutGrid,
+    ShieldAlert,
+    Sun,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -22,6 +24,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { Link, usePage } from '@inertiajs/react';
 import { dashboard } from '@/routes';
 import type { NavItem, User } from '@/types';
 
@@ -30,20 +33,21 @@ export function AppSidebar() {
     const user = auth?.user;
     const role = user?.role;
 
-    const navItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-    ];
+    const logoHref =
+        role === 'admin'
+            ? '/admin/students'
+            : role === 'guru_pembimbing'
+            ? '/teacher/attendances'
+            : dashboard();
+
+    let navItems: NavItem[] = [];
 
     if (role === 'admin') {
-        navItems.push(
+        navItems = [
             {
-                title: 'Master DUDI',
-                href: '/admin/companies',
-                icon: Building2,
+                title: 'Kelola Siswa',
+                href: '/admin/students',
+                icon: Users,
             },
             {
                 title: 'Kelola Guru',
@@ -51,34 +55,54 @@ export function AppSidebar() {
                 icon: GraduationCap,
             },
             {
-                title: 'Kelola Siswa',
-                href: '/admin/students',
-                icon: Users,
-            }
-        );
+                title: 'Master DUDI',
+                href: '/admin/companies',
+                icon: Building2,
+            },
+        ];
     } else if (role === 'guru_pembimbing') {
-        navItems.push(
+        navItems = [
             {
-                title: 'Monitoring Siswa',
-                href: '/dashboard',
-                icon: GraduationCap,
+                title: 'Presensi Siswa',
+                href: '/teacher/attendances',
+                icon: CalendarCheck,
             },
             {
-                title: 'Rekap Presensi & Jurnal',
-                href: '/dashboard',
-                icon: ClipboardCheck,
-            }
-        );
+                title: 'Review Jurnal',
+                href: '/teacher/journals',
+                icon: BookOpen,
+            },
+            {
+                title: 'Review Salat',
+                href: '/teacher/prayers',
+                icon: Sun,
+            },
+        ];
     } else if (role === 'pembimbing_dudi') {
-        navItems.push(
+        navItems = [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
             {
                 title: 'Review Jurnal Siswa',
                 href: '/dashboard',
                 icon: ClipboardCheck,
-            }
-        );
+            },
+        ];
     } else if (role === 'siswa') {
-        navItems.push(
+        navItems = [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Riwayat Presensi',
+                href: '/student/attendances',
+                icon: CalendarCheck,
+            },
             {
                 title: 'Jurnal Harian PKL',
                 href: '/student/journals',
@@ -88,8 +112,8 @@ export function AppSidebar() {
                 title: 'Jadwal & Log Salat',
                 href: '/student/prayers',
                 icon: ClipboardCheck,
-            }
-        );
+            },
+        ];
     }
 
     return (
@@ -98,7 +122,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={logoHref} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

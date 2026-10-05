@@ -75,7 +75,6 @@ class StudentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'nis_nip' => ['nullable', 'string', 'max:50', 'unique:users,nis_nip'],
-            'phone_number' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'string', Password::defaults()],
             'company_id' => ['nullable', 'exists:companies,id'],
             'mentor_teacher_id' => ['nullable', 'exists:users,id'],
@@ -87,8 +86,6 @@ class StudentController extends Controller
         $validated['role'] = 'siswa';
         $validated['password'] = Hash::make($validated['password']);
         $validated['email_verified_at'] = now();
-        $validated['phone'] = $validated['phone_number'] ?? null;
-        unset($validated['phone_number']);
 
         User::create($validated);
 
@@ -108,7 +105,6 @@ class StudentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($student->id)],
             'nis_nip' => ['nullable', 'string', 'max:50', Rule::unique('users', 'nis_nip')->ignore($student->id)],
-            'phone_number' => ['nullable', 'string', 'max:20'],
             'password' => ['nullable', 'string', Password::defaults()],
             'company_id' => ['nullable', 'exists:companies,id'],
             'mentor_teacher_id' => ['nullable', 'exists:users,id'],
@@ -116,11 +112,6 @@ class StudentController extends Controller
             'nis_nip.unique' => 'NIS / NISN sudah terdaftar.',
             'email.unique' => 'Email sudah terdaftar.',
         ]);
-
-        if (array_key_exists('phone_number', $validated)) {
-            $validated['phone'] = $validated['phone_number'];
-            unset($validated['phone_number']);
-        }
 
         if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);

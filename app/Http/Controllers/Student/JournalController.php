@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
 use App\Models\DailyJournal;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -19,90 +18,106 @@ class JournalController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $user = $request->user()->load('company');
 
+        // Fetch all journals of the student ordered by day_number ascending
         $journals = DailyJournal::where('user_id', $user->id)
-            ->with(['attendance:id,date,check_in_time,check_out_time,status'])
-            ->latest('date')
-            ->paginate(10);
+            ->orderBy('day_number', 'asc')
+            ->get()
+            ->map(function ($journal, $idx) {
+                $dayNum = $journal->day_number ?: ($idx + 1);
+                return [
+                    'id' => $journal->id,
+                    'day_number' => (int) $dayNum,
+                    'work_summary' => $journal->work_summary,
+                    'obstacles' => $journal->obstacles,
+                    'work_photo_url' => $journal->work_photo ? asset('storage/' . $journal->work_photo) : null,
+                    'mentor_notes' => $journal->mentor_notes,
+                ];
+            });
 
-        $todayAttendance = Attendance::where('user_id', $user->id)
-            ->whereDate('date', $today)
-            ->first();
-
-        $todayJournal = DailyJournal::where('user_id', $user->id)
-            ->whereDate('date', $today)
-            ->first();
+        // Determine max day filled and next recommended day
+        $filledDayNumbers = $journals->pluck('day_number')->toArray();
+        $nextDay = 1;
+        for ($i = 1; $i <= 120; $i++) {
+            if (! in_array($i, $filledDayNumbers)) {
+                $nextDay = $i;
+                break;
+            }
+        }
 
         $stats = [
-            'total' => DailyJournal::where('user_id', $user->id)->count(),
-            'approved' => DailyJournal::where('user_id', $user->id)->where('status', 'approved')->count(),
-            'revision' => DailyJournal::where('user_id', $user->id)->where('status', 'revision')->count(),
-            'pending' => DailyJournal::where('user_id', $user->id)->where('status', 'pending')->count(),
+            'total' => $journals->count(),
+            'max_day' => empty($filledDayNumbers) ? 0 : max($filledDayNumbers),
+            'next_day' => min(120, $nextDay),
         ];
 
         return Inertia::render('student/journals/index', [
             'journals' => $journals,
-            'todayAttendance' => $todayAttendance,
-            'todayJournal' => $todayJournal,
             'stats' => $stats,
+            'user' => $user,
         ]);
     }
 
     /**
-     * Store a newly created daily journal.
+     * Store or update daily journal by day number.
      */
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
-
-        $todayAttendance = Attendance::where('user_id', $user->id)
-            ->whereDate('date', $today)
-            ->first();
-
-        if (! $todayAttendance) {
-            return redirect()->back()->withErrors([
-                'error' => 'Anda harus melakukan presensi masuk terlebih dahulu sebelum mengisi jurnal harian.',
-            ]);
-        }
-
-        $existing = DailyJournal::where('user_id', $user->id)
-            ->whereDate('date', $today)
-            ->first();
-
-        if ($existing) {
-            return redirect()->back()->withErrors([
-                'error' => 'Jurnal harian untuk hari ini sudah pernah dibuat.',
-            ]);
-        }
 
         $validated = $request->validate([
-            'work_summary' => 'required|string|min:20',
-            'challenges' => 'nullable|string',
-            'documentation_image' => 'nullable|image|mimes:jpeg,png,jpg|max:3072',
+            'day_number' => 'required|integer|min:1|max:120',
+            'work_summary' => 'required|string|min:5',
+            'obstacles' => 'nullable|string',
+            'work_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ], [
-            'work_summary.required' => 'Ringkasan pekerjaan / kegiatan wajib diisi.',
-            'work_summary.min' => 'Ringkasan pekerjaan minimal 20 karakter.',
+            'day_number.required' => 'Pilih hari ke berapa PKL.',
+            'day_number.min' => 'Pilihan hari minimal Hari Ke-1.',
+            'day_number.max' => 'Pilihan hari maksimal Hari Ke-120 (4 bulan).',
+            'work_summary.required' => 'Kegiatan / pekerjaan hari ini wajib diisi.',
+            'work_summary.min' => 'Kegiatan minimal 5 karakter.',
         ]);
 
+        $dayNumber = (int) $validated['day_number'];
+
+        // 1 day = 1 journal: Find if already exists by day_number
+        $journal = DailyJournal::where('user_id', $user->id)
+            ->where('day_number', $dayNumber)
+            ->first();
+
         $imagePath = null;
-        if ($request->hasFile('documentation_image')) {
-            $imagePath = $request->file('documentation_image')->store('journals/docs', 'public');
+        if ($request->hasFile('work_photo')) {
+            $imagePath = $request->file('work_photo')->store('journals/photos', 'public');
+        }
+
+        if ($journal) {
+            $data = [
+                'day_number' => $dayNumber,
+                'work_summary' => $validated['work_summary'],
+                'obstacles' => $validated['obstacles'] ?? null,
+            ];
+            if ($imagePath) {
+                if ($journal->work_photo) {
+                    Storage::disk('public')->delete($journal->work_photo);
+                }
+                $data['work_photo'] = $imagePath;
+            }
+            $journal->update($data);
+
+            return redirect()->back()->with('success', "Jurnal Hari Ke-{$dayNumber} berhasil diperbarui.");
         }
 
         DailyJournal::create([
             'user_id' => $user->id,
-            'attendance_id' => $todayAttendance->id,
-            'date' => $today,
+            'day_number' => $dayNumber,
+            'date' => Carbon::today()->toDateString(),
             'work_summary' => $validated['work_summary'],
-            'challenges' => $validated['challenges'] ?? null,
-            'documentation_image_path' => $imagePath,
-            'status' => 'pending',
+            'obstacles' => $validated['obstacles'] ?? null,
+            'work_photo' => $imagePath,
         ]);
 
-        return redirect()->back()->with('success', 'Jurnal harian PKL berhasil dikirim dan menunggu verifikasi.');
+        return redirect()->back()->with('success', "Jurnal Hari Ke-{$dayNumber} berhasil disimpan.");
     }
 
     /**
@@ -110,39 +125,6 @@ class JournalController extends Controller
      */
     public function update(Request $request, DailyJournal $journal): RedirectResponse
     {
-        $user = $request->user();
-
-        if ($journal->user_id !== $user->id) {
-            abort(403);
-        }
-
-        if ($journal->status === 'approved') {
-            return redirect()->back()->withErrors([
-                'error' => 'Jurnal yang telah disetujui (Approved) tidak dapat diubah.',
-            ]);
-        }
-
-        $validated = $request->validate([
-            'work_summary' => 'required|string|min:20',
-            'challenges' => 'nullable|string',
-            'documentation_image' => 'nullable|image|mimes:jpeg,png,jpg|max:3072',
-        ]);
-
-        $data = [
-            'work_summary' => $validated['work_summary'],
-            'challenges' => $validated['challenges'] ?? null,
-            'status' => 'pending', // reset status to pending when updated
-        ];
-
-        if ($request->hasFile('documentation_image')) {
-            if ($journal->documentation_image_path) {
-                Storage::disk('public')->delete($journal->documentation_image_path);
-            }
-            $data['documentation_image_path'] = $request->file('documentation_image')->store('journals/docs', 'public');
-        }
-
-        $journal->update($data);
-
-        return redirect()->back()->with('success', 'Jurnal harian berhasil diperbarui.');
+        return $this->store($request);
     }
 }

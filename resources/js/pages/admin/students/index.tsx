@@ -5,7 +5,6 @@ import {
     Filter,
     GraduationCap,
     Mail,
-    Phone,
     Plus,
     Search,
     Trash2,
@@ -31,7 +30,6 @@ interface Student {
     name: string;
     email: string;
     nis_nip?: string | null;
-    phone_number?: string | null;
     company_id?: number | null;
     mentor_teacher_id?: number | null;
     company?: {
@@ -73,27 +71,27 @@ interface StudentsResponse {
 }
 
 interface Props {
-    students: StudentsResponse;
-    filters: {
+    students?: StudentsResponse;
+    filters?: {
         search?: string;
         company_id?: string;
         teacher_id?: string;
     };
-    companies: CompanyItem[];
-    teachers: TeacherItem[];
+    companies?: CompanyItem[];
+    teachers?: TeacherItem[];
     errors?: Record<string, string>;
 }
 
 export default function StudentsIndex({
-    students,
-    filters,
-    companies,
-    teachers,
+    students = { data: [], current_page: 1, last_page: 1, total: 0, links: [] },
+    filters = {},
+    companies = [],
+    teachers = [],
     errors,
 }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [companyFilter, setCompanyFilter] = useState(filters.company_id || '');
-    const [teacherFilter, setTeacherFilter] = useState(filters.teacher_id || '');
+    const [search, setSearch] = useState(filters?.search || '');
+    const [companyFilter, setCompanyFilter] = useState(filters?.company_id || '');
+    const [teacherFilter, setTeacherFilter] = useState(filters?.teacher_id || '');
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -103,7 +101,6 @@ export default function StudentsIndex({
         name: '',
         email: '',
         nis_nip: '',
-        phone_number: '',
         password: '',
         company_id: '',
         mentor_teacher_id: '',
@@ -154,7 +151,6 @@ export default function StudentsIndex({
             name: '',
             email: '',
             nis_nip: '',
-            phone_number: '',
             password: '',
             company_id: '',
             mentor_teacher_id: '',
@@ -168,7 +164,6 @@ export default function StudentsIndex({
             name: student.name,
             email: student.email,
             nis_nip: student.nis_nip || '',
-            phone_number: student.phone_number || '',
             password: '',
             company_id: student.company_id ? String(student.company_id) : '',
             mentor_teacher_id: student.mentor_teacher_id ? String(student.mentor_teacher_id) : '',
@@ -182,7 +177,6 @@ export default function StudentsIndex({
             name: form.name,
             email: form.email,
             nis_nip: form.nis_nip || null,
-            phone_number: form.phone_number || null,
             company_id: form.company_id ? Number(form.company_id) : null,
             mentor_teacher_id: form.mentor_teacher_id ? Number(form.mentor_teacher_id) : null,
         };
@@ -294,7 +288,7 @@ export default function StudentsIndex({
                 <Card className="border-neutral-200 dark:border-neutral-800">
                     <CardHeader className="border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
                         <CardTitle className="text-base font-semibold">
-                            Daftar Siswa PKL ({students.total})
+                            Daftar Siswa PKL ({students?.total ?? 0})
                         </CardTitle>
                     </CardHeader>
                     <div className="overflow-x-auto">
@@ -302,21 +296,20 @@ export default function StudentsIndex({
                             <thead className="border-b border-neutral-200 bg-neutral-50/75 text-xs font-semibold uppercase text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
                                 <tr>
                                     <th className="px-6 py-3.5">Nama & NIS/NISN</th>
-                                    <th className="px-6 py-3.5">Kontak</th>
                                     <th className="px-6 py-3.5">Perusahaan DUDI</th>
                                     <th className="px-6 py-3.5">Guru Pembimbing</th>
                                     <th className="px-6 py-3.5 text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                                {students.data.length === 0 ? (
+                                {students?.data?.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-neutral-500">
+                                        <td colSpan={4} className="py-8 text-center text-neutral-500">
                                             Belum ada data siswa PKL yang sesuai.
                                         </td>
                                     </tr>
                                 ) : (
-                                    students.data.map((student) => (
+                                    students?.data?.map((student) => (
                                         <tr
                                             key={student.id}
                                             className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50"
@@ -336,16 +329,6 @@ export default function StudentsIndex({
                                                         )}
                                                     </div>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {student.phone_number ? (
-                                                    <div className="flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-300">
-                                                        <Phone className="h-3.5 w-3.5 text-neutral-400" />
-                                                        <span>{student.phone_number}</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-xs text-neutral-400">-</span>
-                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {student.company ? (
@@ -405,7 +388,7 @@ export default function StudentsIndex({
                     </div>
 
                     {/* Pagination */}
-                    {students.links && students.links.length > 3 && (
+                    {students?.links && students.links.length > 3 && (
                         <div className="flex items-center justify-between border-t border-neutral-200 px-6 py-3 dark:border-neutral-800">
                             <span className="text-xs text-neutral-500">
                                 Menampilkan halaman {students.current_page} dari {students.last_page}
@@ -430,12 +413,12 @@ export default function StudentsIndex({
 
             {/* Create / Edit Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="sm:max-w-lg max-h-[88vh] overflow-y-auto p-4 sm:p-6">
+                    <DialogHeader className="pb-1">
+                        <DialogTitle className="text-base font-bold">
                             {editingStudent ? 'Edit Data Siswa PKL' : 'Tambah Siswa PKL Baru'}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-xs">
                             Isi data siswa dan tentukan penempatan perusahaan DUDI serta Guru Pembimbingnya.
                         </DialogDescription>
                     </DialogHeader>
@@ -478,30 +461,19 @@ export default function StudentsIndex({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                                <Label htmlFor="phone_number">No. WhatsApp / HP</Label>
-                                <Input
-                                    id="phone_number"
-                                    value={form.phone_number}
-                                    onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
-                                    placeholder="081234567890"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password">
-                                    {editingStudent ? 'Password (Opsional)' : 'Password *'}
-                                </Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    required={!editingStudent}
-                                    value={form.password}
-                                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                    placeholder={editingStudent ? '••••••••' : 'Min. 8 karakter'}
-                                />
-                                {errors?.password && <p className="text-xs text-red-500">{errors.password}</p>}
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">
+                                {editingStudent ? 'Password (Opsional)' : 'Password *'}
+                            </Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                required={!editingStudent}
+                                value={form.password}
+                                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                placeholder={editingStudent ? '••••••••' : 'Min. 8 karakter'}
+                            />
+                            {errors?.password && <p className="text-xs text-red-500">{errors.password}</p>}
                         </div>
 
                         {/* Direct Placement Settings */}
@@ -549,12 +521,16 @@ export default function StudentsIndex({
                             </div>
                         </div>
 
-                        <DialogFooter className="pt-3">
-                            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        <DialogFooter className="pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsDialogOpen(false)}
+                            >
                                 Batal
                             </Button>
                             <Button type="submit">
-                                {editingStudent ? 'Simpan Perubahan' : 'Simpan Data Siswa'}
+                                {editingStudent ? 'Simpan Perubahan' : 'Tambah Siswa'}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -563,19 +539,19 @@ export default function StudentsIndex({
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!deleteStudent} onOpenChange={() => setDeleteStudent(null)}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Konfirmasi Hapus Siswa</DialogTitle>
+                        <DialogTitle>Konfirmasi Hapus Akun Siswa</DialogTitle>
                         <DialogDescription>
-                            Apakah Anda yakin ingin menghapus akun Siswa <strong>{deleteStudent?.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+                            Apakah Anda yakin ingin menghapus akun siswa <strong>{deleteStudent?.name}</strong>?
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="mt-4">
+                    <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteStudent(null)}>
                             Batal
                         </Button>
                         <Button variant="destructive" onClick={handleDelete}>
-                            Ya, Hapus
+                            Ya, Hapus Siswa
                         </Button>
                     </DialogFooter>
                 </DialogContent>
