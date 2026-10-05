@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DailyJournalController;
 use App\Http\Controllers\Api\JournalReviewController;
+use App\Http\Controllers\Api\PlottingController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\StudentPlacementController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
-    // Public Authentication Route
+    // Public Authentication Route (Login only, No Public Register)
     Route::prefix('auth')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
     });
@@ -30,83 +32,71 @@ Route::prefix('v1')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
         });
 
-        // Master Data Management & Placements (Admin & Guru Pembimbing)
-        Route::middleware('role:admin,guru_pembimbing')->group(function () {
-            // Companies CRUD
+        // ==========================================
+        // 1. ADMIN KHUSUS (Master Data, Users, Plotting)
+        // ==========================================
+        Route::middleware('role:admin')->prefix('admin')->group(function () {
+            // Master Data Perusahaan DUDI
             Route::apiResource('companies', CompanyController::class);
 
-            // Student Placements
+            // Master Data Pengguna (Guru, Siswa, Pembimbing DUDI)
+            Route::apiResource('users', UserController::class);
+
+            // Plotting Siswa ke DUDI & Guru Pembimbing
             Route::prefix('placements')->group(function () {
+                Route::get('/overview', [PlottingController::class, 'overview']);
+                Route::post('/company/assign', [PlottingController::class, 'assignCompany']);
+                Route::post('/company/unassign', [PlottingController::class, 'unassignCompany']);
+                Route::post('/mentor/assign', [PlottingController::class, 'assignMentor']);
+                Route::post('/mentor/unassign', [PlottingController::class, 'unassignMentor']);
                 Route::get('/unassigned-students', [StudentPlacementController::class, 'getUnassignedStudents']);
-                Route::post('/assign', [StudentPlacementController::class, 'assign']);
-                Route::post('/unassign', [StudentPlacementController::class, 'unassign']);
             });
         });
 
-        // Attendance Module (Siswa)
-        Route::middleware('role:siswa')->prefix('attendance')->group(function () {
-            Route::post('/check-in', [AttendanceController::class, 'checkIn']);
-            Route::post('/check-out', [AttendanceController::class, 'checkOut']);
-            Route::get('/today', [AttendanceController::class, 'todayStatus']);
-            Route::get('/history', [AttendanceController::class, 'history']);
+        // ==========================================
+        // 2. GURU PEMBIMBING & ADMIN (Monitoring & Reports)
+        // ==========================================
+        Route::middleware('role:guru_pembimbing,admin')->prefix('reports')->group(function () {
+            Route::get('/attendances', [ReportController::class, 'attendanceSummary']);
+            Route::get('/journals', [ReportController::class, 'journalRecap']);
         });
 
-        // Daily Journal & Prayer Log Module (Siswa)
-        Route::middleware('role:siswa')->prefix('journals')->group(function () {
-            Route::get('/', [DailyJournalController::class, 'myJournals']);
-            Route::post('/', [DailyJournalController::class, 'store']);
-            Route::get('/{id}', [DailyJournalController::class, 'show']);
-            Route::post('/{id}', [DailyJournalController::class, 'update']);
-        });
-
-        // Mentor Review & Journal Approval (Pembimbing DUDI, Guru Pembimbing, Admin)
+        // ==========================================
+        // 3. PEMBIMBING DUDI, GURU, ADMIN (Review Jurnal)
+        // ==========================================
         Route::middleware('role:pembimbing_dudi,guru_pembimbing,admin')->prefix('reviews')->group(function () {
             Route::get('/journals', [JournalReviewController::class, 'index']);
             Route::get('/journals/{id}', [JournalReviewController::class, 'show']);
             Route::put('/journals/{id}', [JournalReviewController::class, 'review']);
         });
 
-        // Reports & Aggregation (Admin & Guru Pembimbing)
-        Route::middleware('role:guru_pembimbing,admin')->prefix('reports')->group(function () {
-            Route::get('/attendances', [ReportController::class, 'attendanceSummary']);
-            Route::get('/journals', [ReportController::class, 'journalRecap']);
-        });
+        // ==========================================
+        // 4. SISWA KHUSUS (Presensi GPS + Jurnal & Salat)
+        // ==========================================
+        Route::middleware('role:siswa')->group(function () {
+            // Presensi Geofencing GPS & Live Selfie
+            Route::prefix('attendance')->group(function () {
+                Route::post('/check-in', [AttendanceController::class, 'checkIn']);
+                Route::post('/check-out', [AttendanceController::class, 'checkOut']);
+                Route::get('/today', [AttendanceController::class, 'todayStatus']);
+                Route::get('/history', [AttendanceController::class, 'history']);
+            });
 
-        // Role-Based Test Endpoints (RBAC)
-        Route::middleware('role:admin')->prefix('admin')->group(function () {
-            Route::get('/dashboard', function (Request $request) {
-                return response()->json([
-                    'message' => 'Selamat datang di Panel Admin',
-                    'user' => $request->user(),
-                ]);
+            // Jurnal Harian & Log Salat
+            Route::prefix('journals')->group(function () {
+                Route::get('/', [DailyJournalController::class, 'myJournals']);
+                Route::post('/', [DailyJournalController::class, 'store']);
+                Route::get('/{id}', [DailyJournalController::class, 'show']);
+                Route::post('/{id}', [DailyJournalController::class, 'update']);
             });
         });
 
-        Route::middleware('role:guru_pembimbing')->prefix('guru')->group(function () {
-            Route::get('/dashboard', function (Request $request) {
-                return response()->json([
-                    'message' => 'Selamat datang di Panel Guru Pembimbing',
-                    'user' => $request->user(),
-                ]);
-            });
-        });
-
-        Route::middleware('role:pembimbing_dudi')->prefix('dudi')->group(function () {
-            Route::get('/dashboard', function (Request $request) {
-                return response()->json([
-                    'message' => 'Selamat datang di Panel Pembimbing DUDI',
-                    'user' => $request->user(),
-                ]);
-            });
-        });
-
-        Route::middleware('role:siswa')->prefix('siswa')->group(function () {
-            Route::get('/dashboard', function (Request $request) {
-                return response()->json([
-                    'message' => 'Selamat datang di Panel Siswa',
-                    'user' => $request->user(),
-                ]);
-            });
-        });
+        // ==========================================
+        // Role Test Endpoints
+        // ==========================================
+        Route::middleware('role:admin')->get('/admin/dashboard', fn(Request $r) => response()->json(['message' => 'Panel Admin', 'user' => $r->user()]));
+        Route::middleware('role:guru_pembimbing')->get('/guru/dashboard', fn(Request $r) => response()->json(['message' => 'Panel Guru', 'user' => $r->user()]));
+        Route::middleware('role:pembimbing_dudi')->get('/dudi/dashboard', fn(Request $r) => response()->json(['message' => 'Panel DUDI', 'user' => $r->user()]));
+        Route::middleware('role:siswa')->get('/siswa/dashboard', fn(Request $r) => response()->json(['message' => 'Panel Siswa', 'user' => $r->user()]));
     });
 });

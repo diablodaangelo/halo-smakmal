@@ -30,6 +30,7 @@ class User extends Authenticatable implements PasskeyUser
         'role',
         'nis_nip',
         'company_id',
+        'mentor_teacher_id',
         'phone',
         'avatar',
     ];
@@ -66,6 +67,22 @@ class User extends Authenticatable implements PasskeyUser
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the mentor teacher assigned to this student.
+     */
+    public function mentorTeacher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mentor_teacher_id');
+    }
+
+    /**
+     * Get the students guided by this teacher.
+     */
+    public function guidedStudents(): HasMany
+    {
+        return $this->hasMany(User::class, 'mentor_teacher_id');
     }
 
     /**

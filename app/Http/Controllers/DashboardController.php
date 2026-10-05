@@ -28,9 +28,10 @@ class DashboardController extends Controller
             'role' => $user->role,
         ];
 
-        if (in_array($user->role, ['admin', 'guru_pembimbing'], true)) {
+        if ($user->role === 'admin') {
             $totalStudents = User::where('role', 'siswa')->count();
             $placedStudents = User::where('role', 'siswa')->whereNotNull('company_id')->count();
+            $assignedTeachers = User::where('role', 'siswa')->whereNotNull('mentor_teacher_id')->count();
             $todayAttendances = Attendance::whereDate('date', $today)->count();
             $todayPresent = Attendance::whereDate('date', $today)->whereIn('status', ['hadir', 'terlambat'])->count();
             $todayLate = Attendance::whereDate('date', $today)->where('status', 'terlambat')->count();
@@ -45,7 +46,9 @@ class DashboardController extends Controller
                 'total_students' => $totalStudents,
                 'placed_students' => $placedStudents,
                 'unassigned_students' => $totalStudents - $placedStudents,
+                'assigned_teacher_students' => $assignedTeachers,
                 'total_companies' => Company::count(),
+                'total_teachers' => User::where('role', 'guru_pembimbing')->count(),
                 'today_attendances' => $todayAttendances,
                 'today_present' => $todayPresent,
                 'today_late' => $todayLate,
@@ -67,6 +70,34 @@ class DashboardController extends Controller
 
             $data['companies'] = Company::withCount(['users as students_count' => fn($q) => $q->where('role', 'siswa')])
                 ->take(4)
+                ->get();
+        } elseif ($user->role === 'guru_pembimbing') {
+            $guidedStudentsCount = User::where('mentor_teacher_id', $user->id)->count();
+            $todayAttendances = Attendance::whereHas('user', fn($q) => $q->where('mentor_teacher_id', $user->id))
+                ->whereDate('date', $today)
+                ->count();
+            $pendingJournals = DailyJournal::whereHas('user', fn($q) => $q->where('mentor_teacher_id', $user->id))
+                ->where('status', 'pending')
+                ->count();
+            $approvedJournals = DailyJournal::whereHas('user', fn($q) => $q->where('mentor_teacher_id', $user->id))
+                ->where('status', 'approved')
+                ->count();
+
+            $data['stats'] = [
+                'guided_students_count' => $guidedStudentsCount,
+                'today_attendances' => $todayAttendances,
+                'pending_journals' => $pendingJournals,
+                'approved_journals' => $approvedJournals,
+            ];
+
+            $data['guided_students'] = User::where('mentor_teacher_id', $user->id)
+                ->with(['company', 'attendances' => fn($q) => $q->whereDate('date', $today)])
+                ->get();
+
+            $data['recent_journals'] = DailyJournal::whereHas('user', fn($q) => $q->where('mentor_teacher_id', $user->id))
+                ->with(['user.company', 'prayerLogs', 'attendance'])
+                ->latest()
+                ->take(6)
                 ->get();
         } elseif ($user->role === 'pembimbing_dudi') {
             $companyId = $user->company_id;

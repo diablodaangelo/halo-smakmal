@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import {
     AlertCircle,
     Building2,
@@ -10,12 +10,10 @@ import {
     HeartHandshake,
     MapPin,
     Moon,
-    ShieldCheck,
     Sun,
+    UserCheck,
     Users,
-    XCircle,
 } from 'lucide-react';
-import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 interface DashboardProps {
@@ -39,16 +37,10 @@ interface DashboardProps {
     recent_journals?: Array<any>;
     companies?: Array<any>;
     students?: Array<any>;
+    guided_students?: Array<any>;
     today_attendance?: any;
     today_journal?: any;
 }
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-];
 
 export default function Dashboard({
     user,
@@ -59,22 +51,23 @@ export default function Dashboard({
     recent_journals = [],
     companies = [],
     students = [],
+    guided_students = [],
     today_attendance,
     today_journal,
 }: DashboardProps) {
     const roleBadges: Record<string, { label: string; color: string }> = {
-        admin: { label: 'Admin Sekolah', color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
-        guru_pembimbing: { label: 'Guru Pembimbing', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-        pembimbing_dudi: { label: 'Pembimbing DUDI', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-        siswa: { label: 'Siswa PKL', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+        admin: { label: 'Admin Sekolah (Full Control)', color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
+        guru_pembimbing: { label: 'Guru Pembimbing (Monitoring Binaan)', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+        pembimbing_dudi: { label: 'Pembimbing DUDI (Supervisor Lapangan)', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+        siswa: { label: 'Siswa PKL (Pelaksana)', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Dashboard - Halo-Smakmal" />
 
             <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-                {/* 1. Welcome Header Banner */}
+                {/* 1. Header Banner */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-6 text-white shadow-xl sm:p-8">
                     <div className="relative z-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                         <div>
@@ -83,7 +76,7 @@ export default function Dashboard({
                                     <Building2 className="size-3.5" />
                                     SMK Amaliah 1 & 2 Ciawi
                                 </span>
-                                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium bg-white text-slate-900`}>
+                                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-white text-slate-900">
                                     {roleBadges[role]?.label || role}
                                 </span>
                             </div>
@@ -91,7 +84,7 @@ export default function Dashboard({
                                 Halo, {user.name} 👋
                             </h1>
                             <p className="mt-1 text-sm text-blue-100 sm:text-base">
-                                Selamat datang di Sistem Monitoring Presensi Geofencing & Jurnal PKL Terpadu (Halo-Smakmal).
+                                Sistem Terpadu Monitoring Presensi Geofencing, Jurnal Kerja & Log Ibadah PKL.
                             </p>
                         </div>
 
@@ -105,10 +98,9 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                {/* 2. Role: Admin & Guru Pembimbing Dashboard */}
-                {(role === 'admin' || role === 'guru_pembimbing') && (
+                {/* 2. Role: Admin Dashboard (Full Control Master Data & Plotting) */}
+                {role === 'admin' && (
                     <>
-                        {/* Stats Grid */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs transition hover:shadow-md">
                                 <div className="flex items-center justify-between">
@@ -119,23 +111,39 @@ export default function Dashboard({
                                 </div>
                                 <div className="mt-4 flex items-baseline gap-2">
                                     <span className="text-3xl font-bold">{stats.total_students ?? 0}</span>
-                                    <span className="text-xs text-neutral-500">Siswa Terdaftar</span>
+                                    <span className="text-xs text-neutral-500">Siswa Terdata</span>
                                 </div>
                                 <div className="mt-2 text-xs text-emerald-500">
-                                    ✓ {stats.placed_students ?? 0} sudah di-plotting ({stats.unassigned_students ?? 0} unassigned)
+                                    ✓ {stats.placed_students ?? 0} sudah di-plot ke DUDI ({stats.unassigned_students ?? 0} unassigned)
                                 </div>
                             </div>
 
                             <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs transition hover:shadow-md">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Mitra DUDI</span>
+                                    <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Guru Pembimbing</span>
+                                    <div className="rounded-lg bg-emerald-500/10 p-2.5 text-emerald-500">
+                                        <GraduationCap className="size-5" />
+                                    </div>
+                                </div>
+                                <div className="mt-4 flex items-baseline gap-2">
+                                    <span className="text-3xl font-bold">{stats.total_teachers ?? 0}</span>
+                                    <span className="text-xs text-neutral-500">Guru Terdaftar</span>
+                                </div>
+                                <div className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
+                                    {stats.assigned_teacher_students ?? 0} siswa sudah memiliki pembimbing
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs transition hover:shadow-md">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Mitra Kantor DUDI</span>
                                     <div className="rounded-lg bg-indigo-500/10 p-2.5 text-indigo-500">
                                         <Building2 className="size-5" />
                                     </div>
                                 </div>
                                 <div className="mt-4 flex items-baseline gap-2">
                                     <span className="text-3xl font-bold">{stats.total_companies ?? 0}</span>
-                                    <span className="text-xs text-neutral-500">Kantor Geofenced</span>
+                                    <span className="text-xs text-neutral-500">Instansi Geofenced</span>
                                 </div>
                                 <div className="mt-2 text-xs text-indigo-400">
                                     GPS radius tracking aktif
@@ -145,46 +153,29 @@ export default function Dashboard({
                             <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs transition hover:shadow-md">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Presensi Hari Ini</span>
-                                    <div className="rounded-lg bg-emerald-500/10 p-2.5 text-emerald-500">
+                                    <div className="rounded-lg bg-purple-500/10 p-2.5 text-purple-500">
                                         <CheckCircle2 className="size-5" />
                                     </div>
                                 </div>
                                 <div className="mt-4 flex items-baseline gap-2">
                                     <span className="text-3xl font-bold">{stats.today_present ?? 0}</span>
-                                    <span className="text-xs font-semibold text-emerald-500">({stats.attendance_rate ?? 0}%)</span>
+                                    <span className="text-xs font-semibold text-purple-500">({stats.attendance_rate ?? 0}%)</span>
                                 </div>
                                 <div className="mt-2 text-xs text-neutral-500">
-                                    {stats.today_late ?? 0} siswa terlambat
-                                </div>
-                            </div>
-
-                            <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs transition hover:shadow-md">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Kepatuhan Salat</span>
-                                    <div className="rounded-lg bg-purple-500/10 p-2.5 text-purple-500">
-                                        <HeartHandshake className="size-5" />
-                                    </div>
-                                </div>
-                                <div className="mt-4 flex items-baseline gap-2">
-                                    <span className="text-3xl font-bold">{stats.berjamaah_rate ?? 0}%</span>
-                                    <span className="text-xs text-neutral-500">Berjamaah</span>
-                                </div>
-                                <div className="mt-2 text-xs text-purple-400">
-                                    {stats.pending_journals ?? 0} jurnal butuh review
+                                    {stats.today_late ?? 0} siswa terlambat masuk
                                 </div>
                             </div>
                         </div>
 
                         {/* Recent Activity Grid */}
                         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                            {/* Recent Attendances */}
                             <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
                                 <div className="flex items-center justify-between border-b border-sidebar-border pb-3">
                                     <div className="flex items-center gap-2">
                                         <Clock className="size-4 text-blue-500" />
-                                        <h2 className="font-semibold">Presensi Terbaru</h2>
+                                        <h2 className="font-semibold">Presensi Masuk Terkini (Live)</h2>
                                     </div>
-                                    <span className="text-xs text-neutral-500">Live Geofence GPS</span>
+                                    <span className="text-xs text-neutral-500">Validasi Radius GPS</span>
                                 </div>
                                 <div className="mt-4 divide-y divide-sidebar-border/50">
                                     {recent_attendances.length === 0 ? (
@@ -217,12 +208,11 @@ export default function Dashboard({
                                 </div>
                             </div>
 
-                            {/* Recent Journals */}
                             <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
                                 <div className="flex items-center justify-between border-b border-sidebar-border pb-3">
                                     <div className="flex items-center gap-2">
                                         <FileText className="size-4 text-purple-500" />
-                                        <h2 className="font-semibold">Jurnal & Log Salat Terbaru</h2>
+                                        <h2 className="font-semibold">Jurnal Kerja & Log Ibadah Terbaru</h2>
                                     </div>
                                     <span className="text-xs text-neutral-500">Monitoring Karakter</span>
                                 </div>
@@ -247,16 +237,6 @@ export default function Dashboard({
                                                 <p className="mt-1 line-clamp-1 text-xs text-neutral-600 dark:text-neutral-400">
                                                     {jrn.work_summary}
                                                 </p>
-                                                {jrn.prayer_logs && jrn.prayer_logs.length > 0 && (
-                                                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-500">
-                                                        {jrn.prayer_logs.map((p: any) => (
-                                                            <span key={p.id} className="inline-flex items-center gap-1 rounded bg-sidebar-border/40 px-1.5 py-0.5">
-                                                                <Sun className="size-3 text-amber-500" />
-                                                                {p.prayer_type}: <strong className="text-neutral-700 dark:text-neutral-300">{p.status}</strong>
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
                                             </div>
                                         ))
                                     )}
@@ -266,7 +246,71 @@ export default function Dashboard({
                     </>
                 )}
 
-                {/* 3. Role: Pembimbing DUDI Dashboard */}
+                {/* 3. Role: Guru Pembimbing Dashboard (Monitoring Siswa Binaan Sendiri) */}
+                {role === 'guru_pembimbing' && (
+                    <>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
+                                <span className="text-sm font-medium text-neutral-500">Siswa Binaan Anda</span>
+                                <div className="mt-2 text-3xl font-bold text-emerald-500">{stats.guided_students_count ?? 0}</div>
+                                <div className="mt-1 text-xs text-neutral-500">Siswa di bawah bimbingan Anda</div>
+                            </div>
+
+                            <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
+                                <span className="text-sm font-medium text-neutral-500">Presensi Binaan Hari Ini</span>
+                                <div className="mt-2 text-3xl font-bold">{stats.today_attendances ?? 0} / {stats.guided_students_count ?? 0}</div>
+                                <div className="mt-1 text-xs text-emerald-500">Sudah check-in di kantor DUDI</div>
+                            </div>
+
+                            <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
+                                <span className="text-sm font-medium text-neutral-500">Jurnal Butuh Review</span>
+                                <div className="mt-2 text-3xl font-bold text-amber-500">{stats.pending_journals ?? 0}</div>
+                                <div className="mt-1 text-xs text-neutral-500">Laporan menunggu ditinjau</div>
+                            </div>
+
+                            <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
+                                <span className="text-sm font-medium text-neutral-500">Jurnal Disetujui</span>
+                                <div className="mt-2 text-3xl font-bold text-blue-500">{stats.approved_journals ?? 0}</div>
+                                <div className="mt-1 text-xs text-neutral-500">Telah diverifikasi</div>
+                            </div>
+                        </div>
+
+                        {/* List Siswa Binaan Guru */}
+                        <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
+                            <h2 className="font-semibold text-base mb-3 flex items-center gap-2">
+                                <UserCheck className="size-5 text-emerald-500" />
+                                Daftar Siswa Binaan Anda & Status Kehadiran Hari Ini
+                            </h2>
+                            <div className="divide-y divide-sidebar-border/50">
+                                {guided_students.length === 0 ? (
+                                    <div className="py-6 text-center text-sm text-neutral-500">Belum ada siswa yang di-plot ke Anda oleh Admin.</div>
+                                ) : (
+                                    guided_students.map((std) => (
+                                        <div key={std.id} className="flex items-center justify-between py-3">
+                                            <div>
+                                                <p className="font-semibold text-sm">{std.name}</p>
+                                                <p className="text-xs text-neutral-500">NIS: {std.nis_nip || '-'} | Kantor: {std.company?.name || 'Belum di-plot'}</p>
+                                            </div>
+                                            <div>
+                                                {std.attendances && std.attendances.length > 0 ? (
+                                                    <span className="inline-flex rounded-full bg-emerald-500/10 text-emerald-500 px-2.5 py-1 text-xs font-semibold">
+                                                        Hadir ({std.attendances[0].check_in_time})
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex rounded-full bg-rose-500/10 text-rose-500 px-2.5 py-1 text-xs font-semibold">
+                                                        Belum Absen Hari Ini
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* 4. Role: Pembimbing DUDI Dashboard */}
                 {role === 'pembimbing_dudi' && (
                     <>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -296,7 +340,7 @@ export default function Dashboard({
                         </div>
 
                         <div className="rounded-xl border border-sidebar-border bg-sidebar p-5 shadow-xs">
-                            <h2 className="font-semibold text-base mb-4">Daftar Siswa Bimbingan di Perusahaan Anda</h2>
+                            <h2 className="font-semibold text-base mb-4">Daftar Siswa Magang di Perusahaan Anda</h2>
                             <div className="divide-y divide-sidebar-border/50">
                                 {students.length === 0 ? (
                                     <div className="py-6 text-center text-sm text-neutral-500">Belum ada siswa yang ditempatkan di instansi ini.</div>
@@ -326,7 +370,7 @@ export default function Dashboard({
                     </>
                 )}
 
-                {/* 4. Role: Siswa Dashboard */}
+                {/* 5. Role: Siswa Dashboard */}
                 {role === 'siswa' && (
                     <>
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -445,6 +489,15 @@ export default function Dashboard({
                     </>
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Dashboard.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+    ],
+};

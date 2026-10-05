@@ -1,46 +1,22 @@
-// Components
-import { Form, Head } from '@inertiajs/react';
-import TextLink from '@/components/text-link';
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
-import { logout } from '@/routes';
-import { send } from '@/routes/verification';
 
-export default function VerifyEmail({ status }: { status?: string }) {
+export default function VerifyEmailDisabled() {
     return (
-        <>
-            <Head title="Email verification" />
-
-            {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
-                </div>
-            )}
-
-            <Form {...send.form()} className="space-y-6 text-center">
-                {({ processing }) => (
-                    <>
-                        <Button disabled={processing} variant="secondary">
-                            {processing && <Spinner />}
-                            Resend verification email
-                        </Button>
-
-                        <TextLink
-                            href={logout()}
-                            className="mx-auto block text-sm"
-                        >
-                            Log out
-                        </TextLink>
-                    </>
-                )}
-            </Form>
-        </>
+        <div className="flex flex-col items-center justify-center gap-4 text-center p-6">
+            <Head title="Verifikasi Email" />
+            <h1 className="text-xl font-bold">Akun Sudah Aktif</h1>
+            <p className="text-sm text-neutral-500">
+                Akun Anda telah diaktifkan secara otomatis oleh Administrator sekolah.
+            </p>
+            <Button asChild className="mt-2">
+                <Link href="/dashboard">Buka Dashboard</Link>
+            </Button>
+        </div>
     );
 }
 
-VerifyEmail.layout = {
-    title: 'Email verification',
-    description:
-        'Please verify your email address by clicking on the link we just emailed to you.',
+VerifyEmailDisabled.layout = {
+    title: 'Halo-Smakmal',
+    description: 'Sistem Monitoring PKL SMK Amaliah',
 };

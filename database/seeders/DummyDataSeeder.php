@@ -50,12 +50,18 @@ class DummyDataSeeder extends Seeder
             $mentorDudi->update(['company_id' => $telkomsel->id]);
         }
 
+        // Ambil Guru Pembimbing
+        $guru = User::where('role', 'guru_pembimbing')->first();
+
         // Ambil Siswa
         $siswa1 = User::where('email', 'siswa1@smkamaliah.sch.id')->first();
         $siswa2 = User::where('email', 'siswa2@smkamaliah.sch.id')->first();
         $siswa3 = User::where('email', 'siswa3@smkamaliah.sch.id')->first();
-        if ($siswa3) {
-            $siswa3->update(['company_id' => $amaliah->id]);
+
+        if ($guru) {
+            if ($siswa1) $siswa1->update(['mentor_teacher_id' => $guru->id]);
+            if ($siswa2) $siswa2->update(['mentor_teacher_id' => $guru->id]);
+            if ($siswa3) $siswa3->update(['company_id' => $amaliah->id, 'mentor_teacher_id' => $guru->id]);
         }
 
         // Generate Sample Records selama 3 hari ke belakang

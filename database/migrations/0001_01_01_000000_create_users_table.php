@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('role', ['admin', 'guru_pembimbing', 'pembimbing_dudi', 'siswa'])->default('siswa');
             $table->string('nis_nip')->nullable();
             $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete();
+            $table->foreignId('mentor_teacher_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('phone')->nullable();
             $table->string('avatar')->nullable();
             $table->rememberToken();

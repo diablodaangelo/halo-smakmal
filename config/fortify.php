@@ -161,9 +161,9 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(), // Disabled: Registration must be performed by Admin
         Features::resetPasswords(),
-        Features::emailVerification(),
+        // Features::emailVerification(), // Disabled: Internal school system
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
