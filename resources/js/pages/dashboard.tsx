@@ -834,12 +834,12 @@ export default function Dashboard({
                                 {/* Location Geofence Evaluation */}
                                 {distanceMeters !== null && (
                                     distanceMeters > user.company.radius_meters ? (
-                                        <div className="rounded-lg border border-red-300 bg-red-50 p-2.5 text-xs text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200 flex items-start gap-2">
-                                            <MapPin className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+                                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200 flex items-start gap-2">
+                                            <MapPin className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
                                             <div>
-                                                <span className="font-bold">Keterangan: Lokasi Tidak Sesuai</span>
+                                                <span className="font-bold">Keterangan: Lokasi di Luar Radius</span>
                                                 <p className="text-[11px] mt-0.5">
-                                                    Jarak Anda {distanceMeters} meter dari kantor (Batas radius: {user.company.radius_meters} meter). Presensi ditolak jika berada di luar area kantor.
+                                                    Jarak Anda {distanceMeters} meter dari kantor (Batas toleransi: {user.company.radius_meters} meter). Presensi tetap tercatat dengan keterangan lokasi di luar radius.
                                                 </p>
                                             </div>
                                         </div>

@@ -35,7 +35,8 @@ class AttendanceController extends Controller
         $company = $user->company;
         $now = Carbon::now();
         $today = $now->toDateString();
-        $currentTime = $now->format('H:i');
+        $currentTime = $now->format('H:i:s');
+        $currentTimeShort = $now->format('H:i');
 
         // Check duplicate
         $existing = Attendance::where('user_id', $user->id)
@@ -44,11 +45,11 @@ class AttendanceController extends Controller
 
         if ($existing) {
             return redirect()->back()->withErrors([
-                'attendance' => 'Anda sudah melakukan presensi masuk hari ini pada pukul ' . $existing->check_in_time . ' WIB.',
+                'attendance' => 'Anda sudah melakukan presensi masuk hari ini pada pukul ' . substr($existing->check_in_time, 0, 5) . ' WIB.',
             ]);
         }
 
-        // Validate GPS distance
+        // Calculate GPS distance
         $distance = GeofenceService::calculateDistance(
             (float) $validated['latitude'],
             (float) $validated['longitude'],
@@ -56,19 +57,13 @@ class AttendanceController extends Controller
             (float) $company->longitude
         );
 
-        if ($distance > $company->radius_meters) {
-            $formattedDistance = round($distance);
-            return redirect()->back()->withErrors([
-                'attendance' => "Lokasi tidak sesuai: Posisi Anda berjarak {$formattedDistance} meter dari kantor {$company->name} (Batas radius toleransi: {$company->radius_meters} meter). Silakan berada di lokasi kantor.",
-            ]);
-        }
+        $formattedDistance = round($distance);
+        $isOutsideRadius = $distance > $company->radius_meters;
 
         // Determine status (hadir / terlambat)
         $limitTime = substr($company->check_in_end, 0, 5);
-        $status = 'hadir';
-        if ($currentTime > $limitTime) {
-            $status = 'terlambat';
-        }
+        $isLate = $currentTimeShort > $limitTime;
+        $status = $isLate ? 'terlambat' : 'hadir';
 
         // Store selfie image
         $imagePath = $this->saveBase64Image($validated['selfie_image'], 'attendances/checkin');
@@ -78,15 +73,27 @@ class AttendanceController extends Controller
             'company_id' => $company->id,
             'date' => $today,
             'check_in_time' => $currentTime,
-            'check_in_latitude' => $validated['latitude'],
-            'check_in_longitude' => $validated['longitude'],
-            'check_in_selfie_path' => $imagePath,
+            'check_in_lat' => $validated['latitude'],
+            'check_in_long' => $validated['longitude'],
+            'selfie_path' => $imagePath,
             'status' => $status,
         ]);
 
-        $statusMsg = $status === 'hadir'
-            ? "Presensi Masuk Berhasil (Tepat Waktu - {$currentTime} WIB). Semangat beraktivitas!"
-            : "Presensi Masuk Berhasil (Status: Terlambat - {$currentTime} WIB, batas: {$limitTime} WIB).";
+        // Build informative keterangan message
+        $keteranganParts = [];
+        if ($isLate) {
+            $keteranganParts[] = "Status: Terlambat ({$currentTimeShort} WIB, batas: {$limitTime} WIB)";
+        } else {
+            $keteranganParts[] = "Tepat Waktu ({$currentTimeShort} WIB)";
+        }
+
+        if ($isOutsideRadius) {
+            $keteranganParts[] = "Lokasi: Di luar radius ({$formattedDistance}m dari kantor {$company->name}, batas toleransi {$company->radius_meters}m)";
+        } else {
+            $keteranganParts[] = "Lokasi Sesuai ({$formattedDistance}m)";
+        }
+
+        $statusMsg = 'Presensi Masuk Berhasil dicatat! ' . implode(' | ', $keteranganParts);
 
         return redirect()->back()->with('success', $statusMsg);
     }
@@ -113,7 +120,8 @@ class AttendanceController extends Controller
         $company = $user->company;
         $now = Carbon::now();
         $today = $now->toDateString();
-        $currentTime = $now->format('H:i');
+        $currentTime = $now->format('H:i:s');
+        $currentTimeShort = $now->format('H:i');
 
         $attendance = Attendance::where('user_id', $user->id)
             ->whereDate('date', $today)
@@ -127,19 +135,11 @@ class AttendanceController extends Controller
 
         if ($attendance->check_out_time !== null) {
             return redirect()->back()->withErrors([
-                'attendance' => 'Anda sudah melakukan presensi pulang hari ini pada pukul ' . $attendance->check_out_time . ' WIB.',
+                'attendance' => 'Anda sudah melakukan presensi pulang hari ini pada pukul ' . substr($attendance->check_out_time, 0, 5) . ' WIB.',
             ]);
         }
 
-        // Validate early check-out
-        $startTime = substr($company->check_out_start, 0, 5);
-        if ($currentTime < $startTime) {
-            return redirect()->back()->withErrors([
-                'attendance' => "Belum memasuki jam pulang (Jam pulang dimulai pukul {$startTime} WIB).",
-            ]);
-        }
-
-        // Validate GPS distance
+        // Calculate GPS distance
         $distance = GeofenceService::calculateDistance(
             (float) $validated['latitude'],
             (float) $validated['longitude'],
@@ -147,23 +147,33 @@ class AttendanceController extends Controller
             (float) $company->longitude
         );
 
-        if ($distance > $company->radius_meters) {
-            $formattedDistance = round($distance);
-            return redirect()->back()->withErrors([
-                'attendance' => "Lokasi tidak sesuai: Posisi Anda berjarak {$formattedDistance} meter dari kantor (Batas radius toleransi: {$company->radius_meters} meter).",
-            ]);
-        }
+        $formattedDistance = round($distance);
+        $isOutsideRadius = $distance > $company->radius_meters;
+
+        // Check early check-out
+        $startTime = substr($company->check_out_start, 0, 5);
+        $isEarly = $currentTimeShort < $startTime;
 
         $imagePath = $this->saveBase64Image($validated['selfie_image'], 'attendances/checkout');
 
         $attendance->update([
             'check_out_time' => $currentTime,
-            'check_out_latitude' => $validated['latitude'],
-            'check_out_longitude' => $validated['longitude'],
-            'check_out_selfie_path' => $imagePath,
+            'check_out_lat' => $validated['latitude'],
+            'check_out_long' => $validated['longitude'],
         ]);
 
-        return redirect()->back()->with('success', "Presensi Pulang Berhasil (Pukul {$currentTime} WIB). Selamat beristirahat!");
+        // Build informative message
+        $keteranganParts = ["Pukul {$currentTimeShort} WIB"];
+        if ($isEarly) {
+            $keteranganParts[] = "Pulang lebih awal (jam pulang standar: {$startTime} WIB)";
+        }
+        if ($isOutsideRadius) {
+            $keteranganParts[] = "Di luar radius ({$formattedDistance}m dari kantor)";
+        }
+
+        $msg = 'Presensi Pulang Berhasil! ' . implode(' | ', $keteranganParts) . '. Selamat beristirahat!';
+
+        return redirect()->back()->with('success', $msg);
     }
 
     /**
