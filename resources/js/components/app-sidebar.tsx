@@ -48,11 +48,6 @@ export function AppSidebar() {
                 title: 'Kelola Pengguna',
                 href: '/admin/users',
                 icon: Users,
-            },
-            {
-                title: 'Plotting Penempatan',
-                href: '/admin/plotting',
-                icon: GitMerge,
             }
         );
     } else if (role === 'guru_pembimbing') {
