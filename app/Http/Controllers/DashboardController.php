@@ -138,27 +138,49 @@ class DashboardController extends Controller
                 ->whereDate('date', $today)
                 ->first();
 
-            $totalHadir = Attendance::where('user_id', $user->id)->where('status', 'hadir')->count();
-            $totalTerlambat = Attendance::where('user_id', $user->id)->where('status', 'terlambat')->count();
-            $totalPresensi = $totalHadir + $totalTerlambat;
+            $allAttendances = Attendance::where('user_id', $user->id)->get();
+            $totalPresensi = $allAttendances->count();
+            $totalHadir = $allAttendances->where('status', 'hadir')->count();
+            $totalTerlambat = $allAttendances->where('status', 'terlambat')->count();
 
             $data['stats'] = [
                 'has_checked_in' => (bool) $todayAttendance,
                 'has_checked_out' => (bool) ($todayAttendance && $todayAttendance->check_out_time !== null),
-                'check_in_time' => $todayAttendance?->check_in_time,
-                'check_out_time' => $todayAttendance?->check_out_time,
+                'check_in_time' => $todayAttendance?->check_in_time ? substr($todayAttendance->check_in_time, 0, 5) : null,
+                'check_out_time' => $todayAttendance?->check_out_time ? substr($todayAttendance->check_out_time, 0, 5) : null,
                 'attendance_status' => $todayAttendance?->status,
                 'total_hadir' => $totalHadir,
                 'total_terlambat' => $totalTerlambat,
                 'total_presensi' => $totalPresensi,
-                'punctuality_rate' => $totalPresensi > 0 ? round(($totalHadir / $totalPresensi) * 100, 1) : 0,
+                'punctuality_rate' => $totalPresensi > 0 ? round(($totalHadir / $totalPresensi) * 100, 1) : 100,
             ];
 
-            $data['today_attendance'] = $todayAttendance;
+            $data['today_attendance'] = $todayAttendance ? [
+                'id' => $todayAttendance->id,
+                'date' => $todayAttendance->date instanceof Carbon ? $todayAttendance->date->format('Y-m-d') : (string) $todayAttendance->date,
+                'check_in_time' => $todayAttendance->check_in_time ? substr($todayAttendance->check_in_time, 0, 5) : null,
+                'check_out_time' => $todayAttendance->check_out_time ? substr($todayAttendance->check_out_time, 0, 5) : null,
+                'status' => $todayAttendance->status,
+                'selfie_url' => $todayAttendance->selfie_path ? asset('storage/' . $todayAttendance->selfie_path) : null,
+            ] : null;
+
             $data['recent_attendances'] = Attendance::where('user_id', $user->id)
                 ->latest('date')
-                ->take(7)
-                ->get();
+                ->take(5)
+                ->get()
+                ->map(function ($att) {
+                    $dateObj = $att->date instanceof Carbon ? $att->date : Carbon::parse($att->date);
+                    return [
+                        'id' => $att->id,
+                        'date_raw' => $dateObj->format('Y-m-d'),
+                        'date_formatted' => $dateObj->isoFormat('dddd, D MMMM Y'),
+                        'date_short' => $dateObj->isoFormat('D MMM Y'),
+                        'day_name' => $dateObj->isoFormat('dddd'),
+                        'check_in_time' => $att->check_in_time ? substr($att->check_in_time, 0, 5) : null,
+                        'check_out_time' => $att->check_out_time ? substr($att->check_out_time, 0, 5) : null,
+                        'status' => $att->status,
+                    ];
+                });
         }
 
         return Inertia::render('dashboard', $data);

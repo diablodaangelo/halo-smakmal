@@ -1,10 +1,11 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     AlertCircle,
     ChevronLeft,
     ChevronRight,
     Clock,
     Edit3,
+    Eye,
     GraduationCap,
     Mail,
     Phone,
@@ -30,6 +31,7 @@ import { Label } from '@/components/ui/label';
 interface Teacher {
     id: number;
     name: string;
+    slug?: string;
     email: string;
     nis_nip?: string | null;
     phone?: string | null;
@@ -321,9 +323,12 @@ export default function TeachersIndex({
                                                             {getInitials(teacher.name)}
                                                         </div>
                                                         <div>
-                                                            <div className="font-bold text-slate-900">
+                                                            <Link
+                                                                href={`/teachers/${teacher.slug || teacher.id}`}
+                                                                className="font-bold text-slate-900 hover:text-[#008953] hover:underline"
+                                                            >
                                                                 {teacher.name}
-                                                            </div>
+                                                            </Link>
                                                             <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
                                                                 NIP: {teacher.nis_nip || '-'}
                                                             </div>
@@ -377,6 +382,13 @@ export default function TeachersIndex({
                                                 {/* Action Buttons */}
                                                 <td className="px-5 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-1.5">
+                                                        <Link
+                                                            href={`/teachers/${teacher.slug || teacher.id}`}
+                                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                                            title="Lihat Profil Guru"
+                                                        >
+                                                            <Eye className="h-4 w-4 stroke-[2]" />
+                                                        </Link>
                                                         <button
                                                             onClick={() => openEditDialog(teacher)}
                                                             className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"

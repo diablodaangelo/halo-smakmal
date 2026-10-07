@@ -47,6 +47,11 @@ class JournalReviewController extends Controller
                 ];
             });
 
+        // Default to first student if not provided
+        if (! $studentId && $students->isNotEmpty()) {
+            $studentId = $students->first()['id'];
+        }
+
         $query = DailyJournal::whereHas('user', function ($q) use ($teacher) {
             $q->where('mentor_teacher_id', $teacher->id);
         })->with(['user.company', 'attendance', 'prayerLogs']);

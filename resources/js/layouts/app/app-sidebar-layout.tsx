@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -8,12 +9,20 @@ export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
 }: AppLayoutProps) {
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
     return (
         <AppShell variant="sidebar">
-            <AppSidebar />
+            <AppSidebar
+                isOpen={isMobileSidebarOpen}
+                onClose={() => setIsMobileSidebarOpen(false)}
+            />
             <AppContent variant="sidebar">
-                <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                <main className="flex-1 pb-16">
+                <AppSidebarHeader
+                    breadcrumbs={breadcrumbs}
+                    onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+                />
+                <main className="flex-1 flex flex-col">
                     {children}
                 </main>
             </AppContent>

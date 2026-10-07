@@ -8,6 +8,12 @@ Route::redirect('/', '/login')->name('home');
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Public Profile Guru Pembimbing (accessible by any authenticated user)
+    Route::get('/teachers/{slug}', [\App\Http\Controllers\TeacherProfileController::class, 'show'])->name('teachers.profile');
+
+    // Public Profile Siswa PKL (accessible by any authenticated user)
+    Route::get('/students/{slug}', [\App\Http\Controllers\StudentProfileController::class, 'show'])->name('students.profile');
+
     // Admin Group Routes
     Route::middleware(['check.role:admin'])->prefix('admin')->name('admin.')->group(function () {
         // Master Data Perusahaan / DUDI
@@ -39,6 +45,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Teacher (Guru Pembimbing) Group Routes
     Route::middleware(['check.role:guru_pembimbing'])->prefix('teacher')->name('teacher.')->group(function () {
+        // Daftar Siswa Binaan
+        Route::get('students', [\App\Http\Controllers\Teacher\StudentListController::class, 'index'])->name('students.index');
+
         // Presensi Siswa Binaan
         Route::get('attendances', [\App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendances.index');
 

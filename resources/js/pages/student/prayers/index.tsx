@@ -1,18 +1,16 @@
 import { Head, router } from '@inertiajs/react';
 import {
-    CalendarCheck,
+    Calendar,
     CheckCircle2,
     Clock,
-    HeartHandshake,
+    Info,
     MapPin,
     Moon,
     Plus,
     Sparkles,
     Sun,
-    Users,
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -48,6 +46,8 @@ interface PrayerLogsResponse {
     current_page: number;
     last_page: number;
     total: number;
+    from: number;
+    to: number;
     links: PaginationLink[];
 }
 
@@ -74,7 +74,6 @@ interface Props {
 export default function StudentPrayersIndex({
     todayPrayers,
     prayerHistory,
-    stats,
     schedule,
     today_date,
     errors,
@@ -119,227 +118,211 @@ export default function StudentPrayersIndex({
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'berjamaah':
-                return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300">Berjamaah</Badge>;
+                return (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 text-[11px] font-semibold">
+                        <CheckCircle2 className="size-3 text-emerald-600" />
+                        Berjamaah
+                    </span>
+                );
             case 'munfarid':
-                return <Badge className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950 dark:text-blue-300">Munfarid (Sendiri)</Badge>;
+                return (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 px-2.5 py-0.5 text-[11px] font-semibold">
+                        Munfarid (Sendiri)
+                    </span>
+                );
             case 'udzur':
-                return <Badge className="bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-300">Udzur Syar'i</Badge>;
+                return (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80 px-2.5 py-0.5 text-[11px] font-semibold">
+                        Udzur Syar'i
+                    </span>
+                );
             default:
-                return <Badge variant="secondary">{status}</Badge>;
+                return (
+                    <span className="inline-flex rounded-full bg-slate-100 text-slate-700 px-2.5 py-0.5 text-[11px] font-medium">
+                        {status}
+                    </span>
+                );
         }
     };
 
     return (
         <>
-            <Head title="Jadwal & Log Salat" />
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
-                {/* Header */}
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                        <Sparkles className="h-4 w-4" />
-                        <span>Karakter & Kedisiplinan Ibadah SMK Amaliah</span>
-                    </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            <Head title="Jadwal & Log Salat - Halo-Smakmal" />
+
+            <div className="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full">
+                {/* Header Title Section */}
+                <div>
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                         Jadwal & Log Salat
                     </h1>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                        Hari ini: <strong>{today_date}</strong>. Catat pelaksanaan salat fardhu Dzuhur & Ashar selama beraktivitas di lokasi PKL.
+                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                        Hari ini: <strong>{today_date}</strong>. Dokumentasikan pelaksanaan ibadah salat fardhu Dzuhur & Ashar selama beraktivitas di lokasi PKL.
                     </p>
                 </div>
 
-                {/* Today Prayer Action Cards */}
+                {/* Today Prayer Action Cards (2 Clean Cards: Dzuhur & Ashar) */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {/* Dzuhur Card */}
-                    <Card className="border-neutral-200 dark:border-neutral-800 relative overflow-hidden">
-                        <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none" />
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-                                        <Sun className="h-5 w-5" />
+                    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+                        <div>
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60">
+                                        <Sun className="size-4" />
                                     </div>
                                     <div>
-                                        <CardTitle className="text-base font-bold">Salat Dzuhur</CardTitle>
-                                        <p className="text-xs text-neutral-500">Estimasi waktu: {schedule.dzuhur} WIB</p>
+                                        <h2 className="text-base font-bold text-slate-900">Salat Dzuhur</h2>
+                                        <p className="text-xs text-slate-400">Estimasi: {schedule.dzuhur} WIB</p>
                                     </div>
                                 </div>
                                 {todayPrayers.dzuhur ? (
                                     getStatusBadge(todayPrayers.dzuhur.status)
                                 ) : (
-                                    <Badge variant="outline" className="border-neutral-300 text-neutral-500">
+                                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-500">
                                         Belum Dicatat
-                                    </Badge>
+                                    </span>
                                 )}
                             </div>
-                        </CardHeader>
-                        <CardContent className="pt-2">
-                            {todayPrayers.dzuhur ? (
-                                <div className="rounded-lg bg-neutral-50 p-3 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 mb-3 space-y-1">
-                                    <div className="flex items-center gap-1.5">
-                                        <Clock className="h-3.5 w-3.5 text-neutral-400" />
-                                        <span>Pukul: {todayPrayers.dzuhur.prayer_time ? todayPrayers.dzuhur.prayer_time.substring(0, 5) : '-'} WIB</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <MapPin className="h-3.5 w-3.5 text-neutral-400" />
-                                        <span>Tempat: {todayPrayers.dzuhur.location_name || '-'}</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-xs text-neutral-500 mb-3">
-                                    Laksanakan salat tepat waktu berjamaah di musholla kantor atau masjid terdekat.
-                                </p>
-                            )}
 
-                            <Button
-                                onClick={() => openLogDialog('dzuhur')}
-                                variant={todayPrayers.dzuhur ? 'outline' : 'default'}
-                                size="sm"
-                                className="w-full text-xs gap-1.5"
-                            >
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                {todayPrayers.dzuhur ? 'Perbarui Log Dzuhur' : 'Catat Salat Dzuhur'}
-                            </Button>
-                        </CardContent>
-                    </Card>
+                            <div className="py-4">
+                                {todayPrayers.dzuhur ? (
+                                    <div className="rounded-xl bg-slate-50 p-3.5 text-xs text-slate-700 border border-slate-100 space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="size-3.5 text-slate-400 shrink-0" />
+                                            <span>
+                                                Pukul: <strong className="font-mono font-bold text-slate-900">{todayPrayers.dzuhur.prayer_time ? todayPrayers.dzuhur.prayer_time.substring(0, 5) : '-'} WIB</strong>
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="size-3.5 text-slate-400 shrink-0" />
+                                            <span>
+                                                Tempat: <strong className="font-semibold text-slate-800">{todayPrayers.dzuhur.location_name || '-'}</strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-slate-500 leading-relaxed py-1">
+                                        Laksanakan salat Dzuhur tepat waktu berjamaah di musholla kantor atau masjid terdekat.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={() => openLogDialog('dzuhur')}
+                            className={`w-full gap-2 text-xs font-semibold h-10 rounded-xl shadow-xs ${
+                                todayPrayers.dzuhur
+                                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                                    : 'bg-[#008953] hover:bg-[#007346] text-white'
+                            }`}
+                        >
+                            <CheckCircle2 className="size-4" />
+                            <span>{todayPrayers.dzuhur ? 'Perbarui Log Dzuhur' : 'Catat Salat Dzuhur'}</span>
+                        </Button>
+                    </div>
 
                     {/* Ashar Card */}
-                    <Card className="border-neutral-200 dark:border-neutral-800 relative overflow-hidden">
-                        <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-orange-500/10 to-transparent pointer-events-none" />
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300">
-                                        <Moon className="h-5 w-5" />
+                    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+                        <div>
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/60">
+                                        <Moon className="size-4" />
                                     </div>
                                     <div>
-                                        <CardTitle className="text-base font-bold">Salat Ashar</CardTitle>
-                                        <p className="text-xs text-neutral-500">Estimasi waktu: {schedule.ashar} WIB</p>
+                                        <h2 className="text-base font-bold text-slate-900">Salat Ashar</h2>
+                                        <p className="text-xs text-slate-400">Estimasi: {schedule.ashar} WIB</p>
                                     </div>
                                 </div>
                                 {todayPrayers.ashar ? (
                                     getStatusBadge(todayPrayers.ashar.status)
                                 ) : (
-                                    <Badge variant="outline" className="border-neutral-300 text-neutral-500">
+                                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-500">
                                         Belum Dicatat
-                                    </Badge>
+                                    </span>
                                 )}
                             </div>
-                        </CardHeader>
-                        <CardContent className="pt-2">
-                            {todayPrayers.ashar ? (
-                                <div className="rounded-lg bg-neutral-50 p-3 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 mb-3 space-y-1">
-                                    <div className="flex items-center gap-1.5">
-                                        <Clock className="h-3.5 w-3.5 text-neutral-400" />
-                                        <span>Pukul: {todayPrayers.ashar.prayer_time ? todayPrayers.ashar.prayer_time.substring(0, 5) : '-'} WIB</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <MapPin className="h-3.5 w-3.5 text-neutral-400" />
-                                        <span>Tempat: {todayPrayers.ashar.location_name || '-'}</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-xs text-neutral-500 mb-3">
-                                    Catat pelaksanaan salat Ashar sebelum atau sesudah jam pulang kerja PKL.
-                                </p>
-                            )}
 
-                            <Button
-                                onClick={() => openLogDialog('ashar')}
-                                variant={todayPrayers.ashar ? 'outline' : 'default'}
-                                size="sm"
-                                className="w-full text-xs gap-1.5"
-                            >
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                {todayPrayers.ashar ? 'Perbarui Log Ashar' : 'Catat Salat Ashar'}
-                            </Button>
-                        </CardContent>
-                    </Card>
+                            <div className="py-4">
+                                {todayPrayers.ashar ? (
+                                    <div className="rounded-xl bg-slate-50 p-3.5 text-xs text-slate-700 border border-slate-100 space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="size-3.5 text-slate-400 shrink-0" />
+                                            <span>
+                                                Pukul: <strong className="font-mono font-bold text-slate-900">{todayPrayers.ashar.prayer_time ? todayPrayers.ashar.prayer_time.substring(0, 5) : '-'} WIB</strong>
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="size-3.5 text-slate-400 shrink-0" />
+                                            <span>
+                                                Tempat: <strong className="font-semibold text-slate-800">{todayPrayers.ashar.location_name || '-'}</strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-slate-500 leading-relaxed py-1">
+                                        Catat pelaksanaan salat Ashar sebelum atau sesudah jam pulang kerja PKL.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={() => openLogDialog('ashar')}
+                            className={`w-full gap-2 text-xs font-semibold h-10 rounded-xl shadow-xs ${
+                                todayPrayers.ashar
+                                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                                    : 'bg-[#008953] hover:bg-[#007346] text-white'
+                            }`}
+                        >
+                            <CheckCircle2 className="size-4" />
+                            <span>{todayPrayers.ashar ? 'Perbarui Log Ashar' : 'Catat Salat Ashar'}</span>
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    <Card className="border-neutral-200 dark:border-neutral-800">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-medium text-neutral-500">Total Log Ibadah</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.total_logs}</div>
-                            <p className="text-[11px] text-neutral-400">Waktu tercatat</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-neutral-200 dark:border-neutral-800">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-medium text-emerald-600">Salat Berjamaah</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-emerald-600">{stats.berjamaah}</div>
-                            <p className="text-[11px] text-neutral-400">Paling diutamakan</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-neutral-200 dark:border-neutral-800">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-medium text-blue-600">Salat Munfarid</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">{stats.munfarid}</div>
-                            <p className="text-[11px] text-neutral-400">Sendiri</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-neutral-200 dark:border-neutral-800">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-medium text-purple-600">Kedisiplinan Berjamaah</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-purple-600">{stats.discipline_rate}%</div>
-                            <p className="text-[11px] text-neutral-400">Tingkat konsistensi</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* History Table */}
-                <Card className="border-neutral-200 dark:border-neutral-800">
-                    <CardHeader className="border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
-                        <CardTitle className="text-base font-semibold">
+                {/* History Table Card */}
+                <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+                    <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5">
+                        <h2 className="text-sm font-bold text-slate-900">
                             Riwayat Pencatatan Salat ({prayerHistory.total})
-                        </CardTitle>
-                    </CardHeader>
+                        </h2>
+                    </div>
+
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="border-b border-neutral-200 bg-neutral-50/75 text-xs font-semibold uppercase text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-                                <tr>
-                                    <th className="px-6 py-3.5">Tanggal</th>
-                                    <th className="px-6 py-3.5">Waktu Salat</th>
-                                    <th className="px-6 py-3.5">Status Pelaksanaan</th>
-                                    <th className="px-6 py-3.5">Jam Pelaksanaan</th>
-                                    <th className="px-6 py-3.5">Lokasi / Tempat</th>
+                        <table className="w-full text-left text-xs">
+                            <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50/30 text-slate-500 font-semibold">
+                                    <th className="px-5 py-3.5">Tanggal</th>
+                                    <th className="px-5 py-3.5">Waktu Salat</th>
+                                    <th className="px-5 py-3.5">Status Pelaksanaan</th>
+                                    <th className="px-5 py-3.5">Jam Pelaksanaan</th>
+                                    <th className="px-5 py-3.5">Lokasi / Tempat</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                            <tbody className="divide-y divide-slate-100 text-slate-700">
                                 {prayerHistory.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-neutral-500">
+                                        <td colSpan={5} className="py-10 text-center text-slate-400">
                                             Belum ada log salat yang tercatat.
                                         </td>
                                     </tr>
                                 ) : (
                                     prayerHistory.data.map((log) => (
-                                        <tr key={log.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50">
-                                            <td className="px-6 py-4 font-mono text-xs text-neutral-600 dark:text-neutral-300">
+                                        <tr key={log.id} className="hover:bg-slate-50/60 transition">
+                                            <td className="px-5 py-3.5 font-mono text-slate-600 font-medium">
                                                 {log.date}
                                             </td>
-                                            <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-white capitalize">
+                                            <td className="px-5 py-3.5 font-bold text-slate-900 capitalize">
                                                 Salat {log.prayer_name}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-5 py-3.5">
                                                 {getStatusBadge(log.status)}
                                             </td>
-                                            <td className="px-6 py-4 text-xs text-neutral-600 dark:text-neutral-300">
+                                            <td className="px-5 py-3.5 font-mono text-slate-800">
                                                 {log.prayer_time ? `${log.prayer_time.substring(0, 5)} WIB` : '-'}
                                             </td>
-                                            <td className="px-6 py-4 text-xs text-neutral-600 dark:text-neutral-300">
+                                            <td className="px-5 py-3.5 text-slate-700">
                                                 {log.location_name || '-'}
                                             </td>
                                         </tr>
@@ -351,11 +334,13 @@ export default function StudentPrayersIndex({
 
                     {/* Pagination */}
                     {prayerHistory.links && prayerHistory.links.length > 3 && (
-                        <div className="flex items-center justify-between border-t border-neutral-200 px-6 py-3 dark:border-neutral-800">
-                            <span className="text-xs text-neutral-500">
-                                Menampilkan halaman {prayerHistory.current_page} dari {prayerHistory.last_page}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 bg-slate-50/50">
+                            <span className="text-xs text-slate-500 font-medium">
+                                Menampilkan {prayerHistory.from || (prayerHistory.data.length > 0 ? 1 : 0)} sampai{' '}
+                                {prayerHistory.to || prayerHistory.data.length} dari {prayerHistory.total} catatan
                             </span>
-                            <div className="flex gap-1">
+
+                            <div className="flex items-center gap-1">
                                 {prayerHistory.links.map((link, idx) => (
                                     <Button
                                         key={idx}
@@ -364,38 +349,42 @@ export default function StudentPrayersIndex({
                                         disabled={!link.url}
                                         onClick={() => link.url && router.get(link.url, {}, { preserveState: true })}
                                         dangerouslySetInnerHTML={{ __html: link.label }}
-                                        className="h-8 text-xs"
+                                        className={`h-8 px-3 text-xs rounded-lg ${
+                                            link.active
+                                                ? 'bg-[#008953] hover:bg-[#007346] text-white border-[#008953]'
+                                                : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
+                                        }`}
                                     />
                                 ))}
                             </div>
                         </div>
                     )}
-                </Card>
+                </div>
             </div>
 
             {/* Prayer Log Modal Form */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>
+                        <DialogTitle className="text-base font-bold text-slate-900">
                             Catat Pelaksanaan Salat {selectedPrayer.toUpperCase()}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-xs text-slate-500">
                             Pilih status pelaksanaan ibadah salat hari ini.
                         </DialogDescription>
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="space-y-4 py-2">
                         <div className="space-y-2">
-                            <Label>Status Pelaksanaan *</Label>
+                            <Label className="text-xs font-semibold text-slate-700">Status Pelaksanaan *</Label>
                             <div className="grid grid-cols-3 gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setStatus('berjamaah')}
-                                    className={`rounded-lg border p-2.5 text-center text-xs font-semibold transition-all ${
+                                    className={`rounded-xl border p-2.5 text-center text-xs font-bold transition-all ${
                                         status === 'berjamaah'
-                                            ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                                            : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800'
+                                            ? 'border-[#008953] bg-emerald-50 text-[#008953]'
+                                            : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                                     }`}
                                 >
                                     Berjamaah
@@ -403,10 +392,10 @@ export default function StudentPrayersIndex({
                                 <button
                                     type="button"
                                     onClick={() => setStatus('munfarid')}
-                                    className={`rounded-lg border p-2.5 text-center text-xs font-semibold transition-all ${
+                                    className={`rounded-xl border p-2.5 text-center text-xs font-bold transition-all ${
                                         status === 'munfarid'
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
-                                            : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800'
+                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                            : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                                     }`}
                                 >
                                     Munfarid
@@ -414,10 +403,10 @@ export default function StudentPrayersIndex({
                                 <button
                                     type="button"
                                     onClick={() => setStatus('udzur')}
-                                    className={`rounded-lg border p-2.5 text-center text-xs font-semibold transition-all ${
+                                    className={`rounded-xl border p-2.5 text-center text-xs font-bold transition-all ${
                                         status === 'udzur'
-                                            ? 'border-purple-600 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
-                                            : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800'
+                                            ? 'border-purple-600 bg-purple-50 text-purple-700'
+                                            : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                                     }`}
                                 >
                                     Udzur Syar'i
@@ -427,41 +416,46 @@ export default function StudentPrayersIndex({
 
                         {status !== 'udzur' ? (
                             <>
-                                <div className="space-y-2">
-                                    <Label htmlFor="prayer_time">Jam Pelaksanaan Salat *</Label>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="prayer_time" className="text-xs font-semibold text-slate-700">Jam Pelaksanaan Salat *</Label>
                                     <Input
                                         id="prayer_time"
                                         type="time"
                                         required
                                         value={prayerTime}
                                         onChange={(e) => setPrayerTime(e.target.value)}
+                                        className="h-10 text-xs rounded-xl"
                                     />
-                                    {errors?.prayer_time && <p className="text-xs text-red-500">{errors.prayer_time}</p>}
+                                    {errors?.prayer_time && <p className="text-xs text-rose-500">{errors.prayer_time}</p>}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="location_name">Lokasi / Tempat Salat *</Label>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="location_name" className="text-xs font-semibold text-slate-700">Lokasi / Tempat Salat *</Label>
                                     <Input
                                         id="location_name"
                                         required
                                         value={locationName}
                                         onChange={(e) => setLocationName(e.target.value)}
-                                        placeholder="Contoh: Musholla Lantai 2, Masjid Al-Barokah"
+                                        placeholder="Contoh: Musholla Kantor, Masjid Al-Barokah"
+                                        className="h-10 text-xs rounded-xl"
                                     />
-                                    {errors?.location_name && <p className="text-xs text-red-500">{errors.location_name}</p>}
+                                    {errors?.location_name && <p className="text-xs text-rose-500">{errors.location_name}</p>}
                                 </div>
                             </>
                         ) : (
-                            <div className="rounded-lg border border-purple-200 bg-purple-50 p-3 text-xs text-purple-800 dark:border-purple-900 dark:bg-purple-950/40 dark:text-purple-300">
-                                ℹ️ Status <strong>Udzur Syar'i</strong> khusus bagi siswi yang berhalangan syariat (haid/nifas). Jam dan lokasi tidak perlu diisi.
+                            <div className="rounded-xl border border-purple-200 bg-purple-50/80 p-3 text-xs text-purple-900 flex items-start gap-2">
+                                <Info className="size-4 shrink-0 text-purple-600 mt-0.5" />
+                                <div>
+                                    Status <strong>Udzur Syar'i</strong> khusus bagi siswi yang berhalangan syariat (haid/nifas). Jam dan lokasi tidak perlu diisi.
+                                </div>
                             </div>
                         )}
 
-                        <DialogFooter className="pt-3">
-                            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        <DialogFooter className="pt-3 gap-2 sm:gap-0">
+                            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-10 text-xs rounded-xl">
                                 Batal
                             </Button>
-                            <Button type="submit">
+                            <Button type="submit" className="bg-[#008953] hover:bg-[#007346] text-white font-semibold h-10 text-xs rounded-xl">
                                 Simpan Log Salat
                             </Button>
                         </DialogFooter>

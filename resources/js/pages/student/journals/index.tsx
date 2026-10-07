@@ -3,6 +3,7 @@ import {
     AlertCircle,
     BookOpen,
     Building2,
+    CalendarCheck,
     CheckCircle2,
     Clock,
     Edit2,
@@ -12,10 +13,11 @@ import {
     Image as ImageIcon,
     Plus,
     Send,
+    UploadCloud,
+    X,
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -49,6 +51,7 @@ interface Props {
         name: string;
         company?: {
             name: string;
+            address?: string;
         } | null;
     };
     errors?: Record<string, string>;
@@ -116,6 +119,11 @@ export default function StudentJournalsIndex({
         }
     };
 
+    const handleRemoveFile = () => {
+        setDocFile(null);
+        setDocFilePreview(null);
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
@@ -137,41 +145,59 @@ export default function StudentJournalsIndex({
 
     return (
         <>
-            <Head title="Buku Jurnal PKL - Siswa" />
+            <Head title="Jurnal Harian PKL - Halo-Smakmal" />
 
-            <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-                {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-200 dark:border-neutral-800 pb-4">
+            <div className="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full">
+                {/* Header Title Section */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                            <BookOpen className="h-4 w-4" />
-                            <span>Buku Jurnal Harian PKL • Siswa</span>
-                        </div>
-                        <h1 className="mt-1 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-                            Logbook Jurnal PKL
+                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                            Jurnal Harian PKL
                         </h1>
-                        <p className="mt-0.5 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
-                            Pengisian jurnal berdasarkan hari PKL (Hari Ke-1 s/d Hari Ke-120).
+                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                            Buku log pencatatan aktivitas dan pekerjaan harian PKL (Hari Ke-1 s/d Hari Ke-120).
                         </p>
                     </div>
 
-                    <div>
-                        <Button
-                            onClick={() => openFormForDay(stats?.next_day || 1)}
-                            className="bg-emerald-600 hover:bg-emerald-500 font-bold text-xs h-9 gap-1.5 shadow-sm"
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span>Tulis Jurnal (Hari Ke-{stats?.next_day || 1})</span>
-                        </Button>
+                    <Button
+                        onClick={() => openFormForDay(stats?.next_day || 1)}
+                        className="bg-[#008953] hover:bg-[#007346] text-white font-bold text-xs h-9 gap-2 shadow-xs rounded-xl self-start sm:self-auto cursor-pointer"
+                    >
+                        <Plus className="size-4" />
+                        <span>Tulis Jurnal (Hari Ke-{stats?.next_day || 1})</span>
+                    </Button>
+                </div>
+
+                {/* Company & Progress Info Banner (Green with White Text) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-[#008953] px-5 py-3.5 text-xs text-white shadow-xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
+                            <Building2 className="size-4" />
+                        </div>
+                        <span className="text-emerald-50 truncate">
+                            Tempat PKL: <strong className="font-bold text-white">{user?.company?.name || 'Belum diplot'}</strong>
+                            {user?.company?.address ? ` (${user.company.address})` : ''}
+                        </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 shrink-0 font-medium text-xs">
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/15 px-3 py-1.5 text-emerald-50">
+                            <CalendarCheck className="size-3.5 text-emerald-200" />
+                            <span>Terisi: <strong className="font-bold text-white">{stats?.total ?? 0}</strong> / 120 Hari</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/15 px-3 py-1.5 text-emerald-50">
+                            <CheckCircle2 className="size-3.5 text-emerald-200" />
+                            <span>Target: <strong className="font-bold text-white">Hari Ke-{stats?.next_day || 1}</strong></span>
+                        </span>
                     </div>
                 </div>
 
                 {/* Error Banner */}
                 {errors && Object.keys(errors).length > 0 && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-300 flex items-start gap-2.5">
-                        <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700 flex items-start gap-2.5">
+                        <AlertCircle className="size-4 shrink-0 text-red-600 mt-0.5" />
                         <div>
-                            <div className="font-bold">Perhatian:</div>
+                            <div className="font-bold">Terjadi Kesalahan:</div>
                             <ul className="list-disc pl-4 mt-1 space-y-0.5">
                                 {Object.values(errors).map((err, i) => (
                                     <li key={i}>{err}</li>
@@ -181,127 +207,79 @@ export default function StudentJournalsIndex({
                     </div>
                 )}
 
-                {/* Summary Card */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card className="border-neutral-200 dark:border-neutral-800 shadow-xs sm:col-span-2 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div className="flex items-center gap-3.5">
-                                <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-600 text-white font-bold text-base shadow-sm">
-                                    <BookOpen className="h-6 w-6" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-base text-neutral-900 dark:text-white">
-                                        Logbook: {user?.name}
-                                    </h3>
-                                    <p className="text-xs text-neutral-600 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5">
-                                        <Building2 className="h-3.5 w-3.5 text-emerald-600" />
-                                        <span>Tempat DUDI: <strong>{user?.company?.name || 'Belum diplot'}</strong></span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="text-right">
-                                <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                                    {stats?.total ?? 0} <span className="text-sm font-normal text-neutral-500">/ 120</span>
-                                </div>
-                                <div className="text-[11px] text-neutral-400">Hari Terisi</div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-neutral-200 dark:border-neutral-800 shadow-xs p-5 flex flex-col justify-center">
-                        <span className="text-xs font-semibold text-neutral-500">Hari Selanjutnya Untuk Diisi</span>
-                        <div className="text-sm font-bold mt-1 text-emerald-600 flex items-center gap-1.5">
-                            <CheckCircle2 className="h-4 w-4" />
-                            <span>Hari Ke-{stats?.next_day || 1}</span>
+                {/* Main Table Card */}
+                <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+                    <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="size-4 text-[#008953]" />
+                            <h3 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                                Daftar Riwayat Jurnal Kegiatan
+                            </h3>
                         </div>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">
-                            Maksimal PKL adalah 120 hari kerja (4 bulan).
-                        </p>
-                    </Card>
-                </div>
-
-                {/* Logbook Table */}
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="border-b border-neutral-200 bg-neutral-50/70 p-4 dark:border-neutral-800 dark:bg-neutral-900/60 flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-xs">
-                                <FileSpreadsheet className="h-4 w-4" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-sm text-neutral-900 dark:text-white">
-                                    Daftar Jurnal PKL Per Hari
-                                </h3>
-                                <p className="text-[11px] text-neutral-500">
-                                    Tabel urutan logbook kegiatan per hari PKL
-                                </p>
-                            </div>
-                        </div>
-
-                        <span className="text-xs text-neutral-500">
-                            Total: <strong>{journals?.length ?? 0} Hari</strong>
+                        <span className="text-xs font-semibold text-slate-500">
+                            Total: <strong className="text-slate-900">{journals?.length ?? 0} Hari</strong>
                         </span>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs border-collapse">
+                        <table className="w-full text-left text-xs">
                             <thead>
-                                <tr className="border-b border-neutral-200 bg-neutral-100/70 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-800/70 dark:text-neutral-300 font-bold uppercase tracking-wider text-[11px]">
-                                    <th className="py-3.5 px-4 w-32">Hari PKL</th>
-                                    <th className="py-3.5 px-4 min-w-[320px]">Kegiatan / Pekerjaan di DUDI</th>
-                                    <th className="py-3.5 px-4 w-52">Kendala</th>
-                                    <th className="py-3.5 px-4 w-24 text-center">Foto</th>
-                                    <th className="py-3.5 px-4 w-52">Catatan Pembimbing</th>
-                                    <th className="py-3.5 px-4 w-20 text-right">Aksi</th>
+                                <tr className="border-b border-slate-100 bg-slate-50/40 text-slate-500 font-semibold">
+                                    <th className="px-5 py-3.5 w-28">Hari PKL</th>
+                                    <th className="px-5 py-3.5 min-w-[280px]">Kegiatan / Pekerjaan</th>
+                                    <th className="px-5 py-3.5 w-48">Kendala</th>
+                                    <th className="px-5 py-3.5 w-24 text-center">Foto</th>
+                                    <th className="px-5 py-3.5 w-52">Catatan Guru</th>
+                                    <th className="px-5 py-3.5 w-20 text-right">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                            <tbody className="divide-y divide-slate-100 text-slate-700">
                                 {(!journals || journals.length === 0) ? (
                                     <tr>
-                                        <td colSpan={6} className="py-12 text-center text-neutral-500">
-                                            <FileText className="h-8 w-8 mx-auto text-neutral-300 dark:text-neutral-700 mb-2" />
-                                            <p className="font-semibold text-sm">Belum ada jurnal yang diisi.</p>
-                                            <p className="text-xs text-neutral-400 mt-0.5">
-                                                Klik tombol "Tulis Jurnal" untuk mengisi kegiatan PKL Hari Ke-1.
+                                        <td colSpan={6} className="py-12 text-center text-slate-400">
+                                            <FileText className="size-8 mx-auto text-slate-300 mb-2" />
+                                            <p className="font-semibold text-sm text-slate-600">Belum ada jurnal yang diisi.</p>
+                                            <p className="text-xs text-slate-400 mt-0.5">
+                                                Klik tombol "Tulis Jurnal" untuk mencatat kegiatan PKL Hari Ke-1.
                                             </p>
                                         </td>
                                     </tr>
                                 ) : (
                                     journals.map((j) => (
-                                        <tr key={j.id} className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 transition">
+                                        <tr key={j.id} className="hover:bg-slate-50/60 transition">
                                             {/* Hari Ke- */}
-                                            <td className="py-3.5 px-4 align-top">
-                                                <span className="inline-flex items-center rounded-md bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                            <td className="px-5 py-3.5 align-top">
+                                                <span className="inline-flex items-center rounded-lg bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 text-xs font-bold text-[#008953]">
                                                     Hari Ke-{j.day_number}
                                                 </span>
                                             </td>
 
                                             {/* Ringkasan Pekerjaan */}
-                                            <td className="py-3.5 px-4 align-top">
-                                                <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-line">
+                                            <td className="px-5 py-3.5 align-top">
+                                                <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-line font-medium">
                                                     {j.work_summary}
                                                 </p>
                                             </td>
 
                                             {/* Kendala */}
-                                            <td className="py-3.5 px-4 align-top">
+                                            <td className="px-5 py-3.5 align-top">
                                                 {j.obstacles ? (
-                                                    <div className="rounded-lg bg-amber-50/70 p-2 text-[11px] text-amber-900 dark:bg-amber-950/30 dark:text-amber-200 border border-amber-200/60 dark:border-amber-900/50 leading-relaxed">
+                                                    <div className="rounded-xl bg-amber-50/80 p-2.5 text-[11px] text-amber-900 border border-amber-200/70 leading-relaxed font-medium">
                                                         {j.obstacles}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-neutral-400 text-[11px] italic">-</span>
+                                                    <span className="text-slate-400 text-xs italic">-</span>
                                                 )}
                                             </td>
 
                                             {/* Foto Dokumentasi */}
-                                            <td className="py-3.5 px-4 align-top text-center">
+                                            <td className="px-5 py-3.5 align-top text-center">
                                                 {j.work_photo_url ? (
                                                     <button
                                                         type="button"
                                                         onClick={() => setPreviewImage(j.work_photo_url)}
-                                                        className="group relative size-12 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 mx-auto block hover:opacity-90"
-                                                        title="Lihat foto"
+                                                        className="group relative size-11 rounded-xl overflow-hidden border border-slate-200 mx-auto block hover:opacity-90 shadow-2xs cursor-pointer"
+                                                        title="Lihat foto kegiatan"
                                                     >
                                                         <img
                                                             src={j.work_photo_url}
@@ -309,34 +287,34 @@ export default function StudentJournalsIndex({
                                                             className="h-full w-full object-cover"
                                                         />
                                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                                            <Eye className="h-3.5 w-3.5 text-white" />
+                                                            <Eye className="size-3.5 text-white" />
                                                         </div>
                                                     </button>
                                                 ) : (
-                                                    <span className="text-[11px] text-neutral-400">-</span>
+                                                    <span className="text-slate-400 text-xs italic">-</span>
                                                 )}
                                             </td>
 
-                                            {/* Catatan Pembimbing */}
-                                            <td className="py-3.5 px-4 align-top">
+                                            {/* Catatan Guru Pembimbing */}
+                                            <td className="px-5 py-3.5 align-top">
                                                 {j.mentor_notes ? (
-                                                    <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 p-2 text-[11px] text-emerald-900 dark:text-emerald-200 border border-emerald-200/60 dark:border-emerald-900 leading-relaxed">
+                                                    <div className="rounded-xl bg-emerald-50/80 p-2.5 text-[11px] text-emerald-950 border border-emerald-200/70 leading-relaxed font-medium">
                                                         {j.mentor_notes}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-[10px] text-neutral-400 italic">-</span>
+                                                    <span className="text-slate-400 text-xs italic">-</span>
                                                 )}
                                             </td>
 
                                             {/* Aksi Edit */}
-                                            <td className="py-3.5 px-4 align-top text-right">
+                                            <td className="px-5 py-3.5 align-top text-right">
                                                 <Button
                                                     onClick={() => openFormForDay(j.day_number)}
                                                     variant="outline"
                                                     size="sm"
-                                                    className="h-7 text-xs gap-1 px-2.5"
+                                                    className="h-7 text-xs gap-1 px-2.5 rounded-lg border-slate-200 text-slate-700 hover:text-[#008953] hover:border-emerald-300 cursor-pointer"
                                                 >
-                                                    <Edit2 className="h-3 w-3" />
+                                                    <Edit2 className="size-3" />
                                                     <span>Edit</span>
                                                 </Button>
                                             </td>
@@ -351,20 +329,20 @@ export default function StudentJournalsIndex({
 
             {/* Modal Form Input / Edit Jurnal */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-lg max-h-[88vh] overflow-y-auto p-4 sm:p-6">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-2xl">
                     <DialogHeader>
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex rounded-md bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-xs font-bold dark:bg-emerald-950 dark:text-emerald-300">
+                            <span className="inline-flex rounded-lg bg-emerald-50 border border-emerald-200/70 text-[#008953] px-2.5 py-0.5 text-xs font-bold">
                                 Hari Ke-{selectedDayNumber}
                             </span>
-                            <DialogTitle className="text-base font-bold">
+                            <DialogTitle className="text-base font-bold text-slate-900">
                                 {isSelectedDayFilled
                                     ? `Edit Jurnal Hari Ke-${selectedDayNumber}`
-                                    : `Isi Jurnal Hari Ke-${selectedDayNumber}`}
+                                    : `Tulis Jurnal Hari Ke-${selectedDayNumber}`}
                             </DialogTitle>
                         </div>
-                        <DialogDescription className="text-xs">
-                            Pilih hari ke berapa PKL yang ingin diisi atau diedit.
+                        <DialogDescription className="text-xs text-slate-500">
+                            Pilih hari ke berapa PKL yang ingin dicatat atau diperbarui.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -372,9 +350,9 @@ export default function StudentJournalsIndex({
                         {/* Pilihan Hari PKL */}
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
-                                <Label className="text-xs font-semibold">Pilih Hari PKL *</Label>
+                                <Label className="text-xs font-semibold text-slate-700">Pilih Hari PKL</Label>
                                 {isSelectedDayFilled && (
-                                    <span className="text-[11px] text-amber-600 font-semibold dark:text-amber-400">
+                                    <span className="text-[11px] text-amber-600 font-semibold">
                                         (Sudah pernah diisi - Mode Edit)
                                     </span>
                                 )}
@@ -382,7 +360,7 @@ export default function StudentJournalsIndex({
                             <select
                                 value={selectedDayNumber}
                                 onChange={(e) => handleSelectDay(Number(e.target.value))}
-                                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-medium focus:border-emerald-500 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900"
+                                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-[#008953] focus:outline-none focus:ring-1 focus:ring-[#008953]"
                             >
                                 {Array.from({ length: 120 }, (_, i) => i + 1).map((day) => {
                                     const journalItem = journalsMap.get(day);
@@ -390,7 +368,7 @@ export default function StudentJournalsIndex({
                                         <option key={day} value={day}>
                                             Hari Ke-{day}{' '}
                                             {journalItem
-                                                ? `✓ (Sudah Diisi)`
+                                                ? `(Sudah Diisi)`
                                                 : `(Belum Diisi)`}
                                         </option>
                                     );
@@ -400,7 +378,7 @@ export default function StudentJournalsIndex({
 
                         {/* Kegiatan / Pekerjaan */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-semibold">
+                            <Label className="text-xs font-semibold text-slate-700">
                                 Kegiatan / Pekerjaan di DUDI *
                             </Label>
                             <textarea
@@ -408,50 +386,58 @@ export default function StudentJournalsIndex({
                                 value={workSummary}
                                 onChange={(e) => setWorkSummary(e.target.value)}
                                 rows={4}
-                                placeholder="Jelaskan apa saja kegiatan atau pekerjaan yang kamu lakukan di tempat PKL..."
-                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs focus:border-emerald-500 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 leading-relaxed"
+                                placeholder="Jelaskan secara rinci kegiatan, modul, atau pekerjaan yang kamu kerjakan di tempat PKL hari ini..."
+                                className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 focus:border-[#008953] focus:outline-none focus:ring-1 focus:ring-[#008953] leading-relaxed"
                             />
                         </div>
 
                         {/* Kendala */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-semibold">
+                            <Label className="text-xs font-semibold text-slate-700">
                                 Kendala yang Dihadapi (Opsional)
                             </Label>
                             <textarea
                                 value={obstacles}
                                 onChange={(e) => setObstacles(e.target.value)}
                                 rows={2}
-                                placeholder="Tuliskan jika ada kendala..."
-                                className="w-full rounded-xl border border-neutral-200 bg-white p-3 text-xs focus:border-emerald-500 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 leading-relaxed"
+                                placeholder="Tuliskan kendala teknis atau operasional jika ada..."
+                                className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 focus:border-[#008953] focus:outline-none focus:ring-1 focus:ring-[#008953] leading-relaxed"
                             />
                         </div>
 
                         {/* Foto Dokumentasi */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-semibold">
-                                Foto Dokumentasi (Opsional)
+                            <Label className="text-xs font-semibold text-slate-700">
+                                Foto Dokumentasi Kegiatan (Opsional)
                             </Label>
                             <Input
                                 type="file"
                                 accept="image/*"
                                 onChange={handleFileChange}
-                                className="h-9 text-xs"
+                                className="h-9 text-xs rounded-xl border-slate-200"
                             />
                             {docFilePreview && (
-                                <div className="mt-2 relative size-20 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                <div className="mt-2 relative size-20 rounded-xl overflow-hidden border border-slate-200 group">
                                     <img src={docFilePreview} alt="Preview" className="h-full w-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveFile}
+                                        className="absolute top-1 right-1 size-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-red-600 transition"
+                                        title="Hapus foto"
+                                    >
+                                        <X className="size-3" />
+                                    </button>
                                 </div>
                             )}
                         </div>
 
-                        <DialogFooter className="pt-2">
+                        <DialogFooter className="pt-3 gap-2">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => setIsDialogOpen(false)}
                                 size="sm"
-                                className="text-xs"
+                                className="text-xs rounded-xl border-slate-200 cursor-pointer"
                             >
                                 Batal
                             </Button>
@@ -459,9 +445,9 @@ export default function StudentJournalsIndex({
                                 type="submit"
                                 disabled={submitting}
                                 size="sm"
-                                className="bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold gap-1.5"
+                                className="bg-[#008953] hover:bg-[#007346] text-white text-xs font-bold gap-1.5 rounded-xl cursor-pointer"
                             >
-                                <Send className="h-3.5 w-3.5" />
+                                <Send className="size-3.5" />
                                 <span>{submitting ? 'Menyimpan...' : `Simpan Jurnal Hari Ke-${selectedDayNumber}`}</span>
                             </Button>
                         </DialogFooter>
@@ -471,13 +457,13 @@ export default function StudentJournalsIndex({
 
             {/* Modal Preview Foto */}
             <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg rounded-2xl p-4">
                     <DialogHeader>
-                        <DialogTitle className="text-sm font-semibold">Foto Dokumentasi Kegiatan</DialogTitle>
+                        <DialogTitle className="text-sm font-bold text-slate-900">Foto Dokumentasi Kegiatan</DialogTitle>
                     </DialogHeader>
                     {previewImage && (
-                        <div className="overflow-hidden rounded-xl bg-black">
-                            <img src={previewImage} alt="Dokumentasi" className="h-auto w-full object-cover" />
+                        <div className="overflow-hidden rounded-xl bg-slate-900 mt-2">
+                            <img src={previewImage} alt="Dokumentasi" className="h-auto w-full object-cover max-h-[70vh]" />
                         </div>
                     )}
                 </DialogContent>

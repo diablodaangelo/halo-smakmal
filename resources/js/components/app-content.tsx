@@ -10,7 +10,7 @@ type Props = React.ComponentProps<'main'> & {
 export function AppContent({ variant = 'sidebar', children, className, ...props }: Props) {
     if (variant === 'sidebar') {
         return (
-            <div className={cn('min-h-screen pl-64 w-full flex flex-col bg-[#f8fafc]', className)} {...props}>
+            <div className={cn('min-h-screen lg:pl-64 pl-0 w-full flex flex-col bg-[#f8fafc]', className)} {...props}>
                 {children}
             </div>
         );

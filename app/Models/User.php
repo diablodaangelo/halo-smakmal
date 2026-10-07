@@ -25,6 +25,7 @@ class User extends Authenticatable implements PasskeyUser
      */
     protected $fillable = [
         'name',
+        'slug',
         'nickname',
         'email',
         'password',
@@ -35,6 +36,25 @@ class User extends Authenticatable implements PasskeyUser
         'phone',
         'avatar',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if (empty($user->slug) && !empty($user->name)) {
+                $baseSlug = \Illuminate\Support\Str::slug($user->name);
+                $slug = $baseSlug;
+                $counter = 1;
+                while (static::where('slug', $slug)->where('id', '!=', $user->id ?? 0)->exists()) {
+                    $slug = $baseSlug . '-' . ($user->nis_nip ? \Illuminate\Support\Str::slug($user->nis_nip) : $counter);
+                    $counter++;
+                }
+                $user->slug = $slug;
+            }
+        });
+    }
 
     /**
      * The accessors to append to the model's array form.

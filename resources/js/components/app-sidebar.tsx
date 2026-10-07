@@ -9,6 +9,7 @@ import {
     Sun,
     UserCog,
     Users,
+    X,
 } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
 import {
@@ -21,17 +22,21 @@ import { dashboard } from '@/routes';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem, User } from '@/types';
 
-export function AppSidebar() {
+interface AppSidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+export function AppSidebar({ isOpen = false, onClose }: AppSidebarProps) {
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const user = auth?.user;
     const role = user?.role;
     const { isCurrentUrl } = useCurrentUrl();
-
     const logoHref =
         role === 'admin'
             ? '/admin/students'
             : role === 'guru_pembimbing'
-            ? '/teacher/attendances'
+            ? '/teacher/students'
             : dashboard();
 
     let navItems: NavItem[] = [];
@@ -56,6 +61,11 @@ export function AppSidebar() {
         ];
     } else if (role === 'guru_pembimbing') {
         navItems = [
+            {
+                title: 'Daftar Siswa',
+                href: '/teacher/students',
+                icon: Users,
+            },
             {
                 title: 'Presensi Siswa',
                 href: '/teacher/attendances',
@@ -120,56 +130,84 @@ export function AppSidebar() {
         : 'AD';
 
     return (
-        <aside className="fixed inset-y-0 left-0 w-64 bg-[#008953] text-white flex flex-col justify-between p-4 z-40 select-none overflow-y-auto shadow-lg">
-            {/* Top: Logo & Nav */}
-            <div className="space-y-6">
-                {/* Brand Logo Header */}
-                <Link href={logoHref} className="flex items-center gap-3 px-2 py-2 group">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#008953] font-black text-xl shadow-md">
-                        H
-                    </div>
-                    <div>
-                        <h1 className="font-bold text-base text-white tracking-tight leading-tight">
-                            Halo Smakmal
-                        </h1>
-                        <p className="text-xs text-emerald-100/80 font-medium">
-                            {role === 'admin' ? 'Admin Portal' : 'Portal PKL'}
-                        </p>
-                    </div>
-                </Link>
+        <>
+            {/* Mobile Backdrop */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden transition-opacity duration-300"
+                    onClick={onClose}
+                    aria-hidden="true"
+                />
+            )}
 
-                {/* Nav Section */}
-                <div className="space-y-2">
-                    <div className="px-3 text-[11px] font-bold uppercase tracking-wider text-emerald-100/60">
-                        MENU UTAMA
+            <aside
+                className={`fixed inset-y-0 left-0 w-64 bg-[#008953] text-white flex flex-col justify-between p-4 z-50 select-none overflow-y-auto shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+                    isOpen ? 'translate-x-0' : '-translate-x-full'
+                }`}
+            >
+                {/* Top: Nav Menu */}
+                <div className="space-y-5 pt-2">
+                    {/* Brand Logo Header & Mobile Close */}
+                    <div className="flex items-center justify-between">
+                        <Link
+                            href={logoHref}
+                            onClick={() => onClose?.()}
+                            className="flex items-center gap-3 px-2 py-1 group"
+                        >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#008953] font-black text-xl shadow-md shadow-emerald-950/20 group-hover:scale-105 transition-transform">
+                                H
+                            </div>
+                            <div>
+                                <h1 className="font-bold text-base text-white tracking-tight leading-tight">
+                                    Halo Smakmal
+                                </h1>
+                            </div>
+                        </Link>
+
+                        {/* Mobile Close Button */}
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="lg:hidden p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                            aria-label="Tutup menu"
+                        >
+                            <X className="size-5" />
+                        </button>
                     </div>
-                    <nav className="space-y-1.5">
-                        {navItems.map((item) => {
-                            const active = isCurrentUrl(item.href);
-                            return (
-                                <Link
-                                    key={item.title}
-                                    href={item.href}
-                                    prefetch
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all ${
-                                        active
-                                            ? 'bg-white text-[#008953] font-bold shadow-md shadow-emerald-900/20 translate-x-1'
-                                            : 'text-white/90 hover:bg-white/10 hover:text-white font-medium'
-                                    }`}
-                                >
-                                    {active ? (
-                                        <span className="flex items-center gap-1.5">
-                                            <span className="h-2 w-2 rounded-full bg-[#008953]" />
-                                            <span className="h-2 w-2 rounded-full bg-[#008953]/50 -ml-0.5" />
-                                        </span>
-                                    ) : null}
-                                    <span>{item.title}</span>
-                                </Link>
-                            );
-                        })}
-                    </nav>
+
+                    {/* Nav Section */}
+                    <div className="space-y-2">
+                        <div className="px-3 text-[11px] font-bold uppercase tracking-wider text-emerald-100/60">
+                            MENU UTAMA
+                        </div>
+                        <nav className="space-y-1.5">
+                            {navItems.map((item) => {
+                                const active = isCurrentUrl(item.href);
+                                return (
+                                    <Link
+                                        key={item.title}
+                                        href={item.href}
+                                        prefetch
+                                        onClick={() => onClose?.()}
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all ${
+                                            active
+                                                ? 'bg-white text-[#008953] font-bold shadow-md shadow-emerald-900/20 translate-x-1'
+                                                : 'text-white/90 hover:bg-white/10 hover:text-white font-medium'
+                                        }`}
+                                    >
+                                        {active ? (
+                                            <span className="flex items-center gap-1.5">
+                                                <span className="h-2 w-2 rounded-full bg-[#008953]" />
+                                                <span className="h-2 w-2 rounded-full bg-[#008953]/50 -ml-0.5" />
+                                            </span>
+                                        ) : null}
+                                        <span>{item.title}</span>
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+                    </div>
                 </div>
-            </div>
 
             {/* Bottom: User Profile Dropdown */}
             <div className="pt-4">
@@ -250,5 +288,6 @@ export function AppSidebar() {
                 </DropdownMenu>
             </div>
         </aside>
+    </>
     );
 }
