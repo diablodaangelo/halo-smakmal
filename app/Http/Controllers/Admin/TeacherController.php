@@ -20,6 +20,7 @@ class TeacherController extends Controller
     public function index(Request $request): Response
     {
         $search = $request->query('search');
+        $status = $request->query('status'); // 'assigned' | 'unassigned'
 
         $teachers = User::where('role', 'guru_pembimbing')
             ->withCount(['mentoredStudents as students_count'])
@@ -30,6 +31,12 @@ class TeacherController extends Controller
                       ->orWhere('nis_nip', 'like', "%{$search}%");
                 });
             })
+            ->when($status === 'assigned', function ($query) {
+                $query->has('mentoredStudents');
+            })
+            ->when($status === 'unassigned', function ($query) {
+                $query->doesntHave('mentoredStudents');
+            })
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -38,6 +45,7 @@ class TeacherController extends Controller
             'teachers' => $teachers,
             'filters' => [
                 'search' => $search ?? '',
+                'status' => $status ?? '',
             ],
         ]);
     }

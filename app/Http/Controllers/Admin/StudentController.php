@@ -54,6 +54,11 @@ class StudentController extends Controller
         $companies = Company::orderBy('name')->get(['id', 'name', 'address']);
         $teachers = User::where('role', 'guru_pembimbing')->orderBy('name')->get(['id', 'name', 'nis_nip']);
 
+        $totalStudents = User::where('role', 'siswa')->count();
+        $assignedDudiCount = User::where('role', 'siswa')->whereNotNull('company_id')->count();
+        $unassignedDudiCount = $totalStudents - $assignedDudiCount;
+        $unassignedTeacherCount = User::where('role', 'siswa')->whereNull('mentor_teacher_id')->count();
+
         return Inertia::render('admin/students/index', [
             'students' => $students,
             'filters' => [
@@ -63,6 +68,12 @@ class StudentController extends Controller
             ],
             'companies' => $companies,
             'teachers' => $teachers,
+            'metrics' => [
+                'total' => $totalStudents,
+                'assigned_dudi' => $assignedDudiCount,
+                'unassigned_dudi' => $unassignedDudiCount,
+                'unassigned_teacher' => $unassignedTeacherCount,
+            ],
         ]);
     }
 

@@ -1,22 +1,17 @@
 import { Form, Head, usePage } from '@inertiajs/react';
-import { CheckCircle2, KeyRound, Lock, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, KeyRound, Lock } from 'lucide-react';
 import { useRef } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/security';
-import type { Props as ManagePasskeysProps } from '@/components/manage-passkeys';
-import ManagePasskeys from '@/components/manage-passkeys';
-import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
-import ManageTwoFactor from '@/components/manage-two-factor';
 
 type Props = {
     passwordRules: string;
-} & ManagePasskeysProps &
-    ManageTwoFactorProps;
+};
 
 export default function Security(props: Props) {
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -25,28 +20,34 @@ export default function Security(props: Props) {
 
     return (
         <>
-            <Head title="Keamanan & Kata Sandi - Halo-Smakmal" />
+            <Head title="Keamanan Kata Sandi - Halo-Smakmal" />
 
             <div className="space-y-6">
+                {/* Flash Success */}
                 {flash?.success && (
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <div className="flex items-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-xs font-bold text-emerald-800 shadow-2xs">
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-[#008953]" />
                         <span>{flash.success}</span>
                     </div>
                 )}
 
                 {/* Card Ubah Kata Sandi */}
-                <Card className="border-neutral-200 shadow-xs dark:border-neutral-800">
-                    <CardHeader className="border-b border-neutral-100 pb-4 dark:border-neutral-800">
-                        <CardTitle className="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white">
-                            <KeyRound className="h-4 w-4 text-emerald-600" />
-                            <span>Ubah Kata Sandi</span>
-                        </CardTitle>
-                        <CardDescription className="text-xs text-neutral-500">
-                            Masukkan kata sandi akun Anda saat ini untuk mengonfirmasi perubahan, lalu tentukan kata sandi baru minimal 8 karakter.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-5">
+                <Card className="rounded-3xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                    <CardContent className="p-6 sm:p-8 space-y-6">
+                        <div className="flex items-start gap-4 pb-6 border-b border-slate-100">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-[#008953] ring-1 ring-emerald-600/20">
+                                <KeyRound className="h-5 w-5 stroke-[2.2]" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900">
+                                    Perbarui Kata Sandi Akun
+                                </h3>
+                                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                    Gunakan kata sandi yang kuat minimal 8 karakter dengan kombinasi huruf dan angka.
+                                </p>
+                            </div>
+                        </div>
+
                         <Form
                             {...SecurityController.update.form()}
                             options={{
@@ -72,14 +73,14 @@ export default function Security(props: Props) {
                                 <>
                                     {/* 1. Kata Sandi Saat Ini */}
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="current_password" className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                                            Kata Sandi Saat Ini <span className="text-red-500">*</span>
+                                        <Label htmlFor="current_password" className="text-xs font-bold text-slate-700">
+                                            Kata Sandi Saat Ini *
                                         </Label>
                                         <PasswordInput
                                             id="current_password"
                                             ref={currentPasswordInput}
                                             name="current_password"
-                                            className="h-9 text-xs"
+                                            className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs sm:text-sm font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                                             autoComplete="current-password"
                                             placeholder="Masukkan kata sandi saat ini"
                                         />
@@ -88,16 +89,16 @@ export default function Security(props: Props) {
 
                                     {/* 2. Kata Sandi Baru */}
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="password" className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                                            Kata Sandi Baru <span className="text-red-500">*</span>
+                                        <Label htmlFor="password" className="text-xs font-bold text-slate-700">
+                                            Kata Sandi Baru *
                                         </Label>
                                         <PasswordInput
                                             id="password"
                                             ref={passwordInput}
                                             name="password"
-                                            className="h-9 text-xs"
+                                            className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs sm:text-sm font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                                             autoComplete="new-password"
-                                            placeholder="Masukkan kata sandi baru"
+                                            placeholder="Masukkan kata sandi baru (min. 8 karakter)"
                                             passwordrules={props.passwordRules}
                                         />
                                         <InputError message={errors.password} />
@@ -105,13 +106,13 @@ export default function Security(props: Props) {
 
                                     {/* 3. Konfirmasi Kata Sandi Baru */}
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="password_confirmation" className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                                            Konfirmasi Kata Sandi Baru <span className="text-red-500">*</span>
+                                        <Label htmlFor="password_confirmation" className="text-xs font-bold text-slate-700">
+                                            Konfirmasi Kata Sandi Baru *
                                         </Label>
                                         <PasswordInput
                                             id="password_confirmation"
                                             name="password_confirmation"
-                                            className="h-9 text-xs"
+                                            className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs sm:text-sm font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                                             autoComplete="new-password"
                                             placeholder="Ulangi kata sandi baru"
                                             passwordrules={props.passwordRules}
@@ -119,14 +120,14 @@ export default function Security(props: Props) {
                                         <InputError message={errors.password_confirmation} />
                                     </div>
 
-                                    <div className="pt-2">
+                                    <div className="pt-3">
                                         <Button
                                             type="submit"
                                             disabled={processing}
-                                            className="h-9 gap-2 bg-emerald-600 px-5 text-xs font-bold text-white shadow-xs hover:bg-emerald-500"
+                                            className="bg-[#008953] hover:bg-[#007346] active:bg-[#00623a] text-white font-bold text-xs sm:text-sm rounded-xl h-11 px-6 shadow-sm shadow-emerald-900/10 transition-all flex items-center gap-2"
                                             data-test="update-password-button"
                                         >
-                                            <Lock className="h-3.5 w-3.5" />
+                                            <Lock className="h-4 w-4 stroke-[2.5]" />
                                             <span>{processing ? 'Menyimpan...' : 'Perbarui Kata Sandi'}</span>
                                         </Button>
                                     </div>
@@ -135,21 +136,6 @@ export default function Security(props: Props) {
                         </Form>
                     </CardContent>
                 </Card>
-
-                {props.canManageTwoFactor && (
-                    <ManageTwoFactor
-                        canManageTwoFactor={props.canManageTwoFactor}
-                        requiresConfirmation={props.requiresConfirmation}
-                        twoFactorEnabled={props.twoFactorEnabled}
-                    />
-                )}
-
-                {props.canManagePasskeys && (
-                    <ManagePasskeys
-                        canManagePasskeys={props.canManagePasskeys}
-                        passkeys={props.passkeys}
-                    />
-                )}
             </div>
         </>
     );

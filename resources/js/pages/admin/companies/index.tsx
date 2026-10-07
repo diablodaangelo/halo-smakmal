@@ -1,22 +1,25 @@
 import { Head, router } from '@inertiajs/react';
 import {
+    AlertCircle,
     Building2,
     CheckCircle2,
+    ChevronLeft,
+    ChevronRight,
     Clock,
     Crosshair,
-    Edit2,
+    Edit3,
     ExternalLink,
+    Info,
     MapPin,
     Plus,
     Radio,
+    RotateCcw,
     Search,
     Trash2,
     Users,
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -54,20 +57,27 @@ interface CompaniesResponse {
     last_page: number;
     total: number;
     links: PaginationLink[];
+    from?: number;
+    to?: number;
 }
 
 interface Props {
-    companies: CompaniesResponse;
-    filters: {
+    companies?: CompaniesResponse;
+    filters?: {
         search?: string;
     };
     errors?: Record<string, string>;
 }
 
-export default function CompaniesIndex({ companies, filters, errors }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
+export default function CompaniesIndex({
+    companies = { data: [], current_page: 1, last_page: 1, total: 0, links: [] },
+    filters = {},
+    errors,
+}: Props) {
+    const [search, setSearch] = useState(filters?.search || '');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+    const [detailCompany, setDetailCompany] = useState<Company | null>(null);
     const [deleteCompany, setDeleteCompany] = useState<Company | null>(null);
 
     const [form, setForm] = useState({
@@ -86,7 +96,6 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
     const [gettingLocation, setGettingLocation] = useState(false);
 
     const parseCoordinates = (input: string) => {
-        // Handle "-6.577449, 106.782421", "-6.577449 106.782421", or Google Maps URLs
         const regex = /(-?\d{1,2}\.\d+)[,\s]+(-?\d{1,3}\.\d+)/;
         const match = input.match(regex);
         if (match) {
@@ -114,9 +123,18 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
         }
     };
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/companies', { search }, { preserveState: true });
+    const handleSearch = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        router.get(
+            '/admin/companies',
+            { search: search || undefined },
+            { preserveState: true, replace: true }
+        );
+    };
+
+    const handleResetFilters = () => {
+        setSearch('');
+        router.get('/admin/companies', {}, { preserveState: true, replace: true });
     };
 
     const openCreateDialog = () => {
@@ -219,244 +237,467 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
         });
     };
 
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .filter(Boolean)
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase();
+    };
+
+    const hasActiveFilters = Boolean(search);
+
     return (
         <>
-            <Head title="Master Perusahaan / DUDI - Admin" />
+            <Head title="Master Tempat PKL (DUDI)" />
 
-            <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-                {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-200 dark:border-neutral-800 pb-4">
-                    <div>
-                        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                            <Building2 className="h-4 w-4" />
-                            <span>Master Data Instansi & DUDI • Administrator</span>
+            <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto w-full">
+                {/* Header Section */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3.5">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d8f2e5] text-[#008953] shadow-xs ring-1 ring-[#008953]/10">
+                            <Building2 className="h-6 w-6 stroke-[2.2]" />
                         </div>
-                        <h1 className="mt-1 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-                            Master Perusahaan & DUDI
-                        </h1>
-                        <p className="mt-0.5 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
-                            Kelola data mitra PKL, koordinat Maps (geofence), radius presensi, dan jam operasional.
-                        </p>
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                                Master Tempat PKL (DUDI)
+                            </h1>
+                            <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                                Kelola mitra industri (DUDI), titik koordinat GPS geofence, radius presensi, dan jam operasional.
+                            </p>
+                        </div>
                     </div>
-                    <Button onClick={openCreateDialog} className="bg-emerald-600 hover:bg-emerald-500 font-bold text-xs h-9 gap-1.5 shadow-sm">
-                        <Plus className="h-4 w-4" />
-                        Tambah Perusahaan
+                    <Button
+                        onClick={openCreateDialog}
+                        className="bg-[#008953] hover:bg-[#007346] active:bg-[#00623a] text-white font-bold text-xs sm:text-sm rounded-xl h-11 px-5 shadow-sm shadow-emerald-900/10 transition-all flex items-center gap-2 self-start sm:self-auto hover:translate-y-[-1px]"
+                    >
+                        <Plus className="h-4 w-4 stroke-[2.5]" />
+                        <span>Tambah DUDI Baru</span>
                     </Button>
                 </div>
 
                 {/* Error Banner */}
                 {errors?.error && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-300">
-                        {errors.error}
+                    <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-xs font-semibold text-red-700 flex items-center gap-2.5 shadow-2xs">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+                        <span>{errors.error}</span>
                     </div>
                 )}
 
-                {/* Search */}
-                <Card className="border-neutral-200 dark:border-neutral-800 shadow-xs">
-                    <CardContent className="p-3.5">
-                        <form onSubmit={handleSearch} className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                                <Input
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Cari nama perusahaan atau alamat kantor DUDI..."
-                                    className="pl-9 h-9 text-xs"
-                                />
-                            </div>
-                            <Button type="submit" variant="secondary" className="h-9 text-xs">
-                                Cari
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+                {/* Search Bar */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-3.5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+                    <form onSubmit={handleSearch} className="relative flex-1 w-full">
+                        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <Input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Cari nama perusahaan, instansi, atau alamat kantor DUDI..."
+                            className="h-10 pl-10 border-0 bg-slate-50/60 hover:bg-slate-100/80 focus:bg-white rounded-xl text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-emerald-500 shadow-none transition"
+                        />
+                    </form>
 
-                {/* Table list */}
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="border-b border-neutral-200 bg-neutral-50/70 p-4 dark:border-neutral-800 dark:bg-neutral-900/60 flex items-center justify-between">
-                        <h3 className="font-bold text-sm text-neutral-900 dark:text-white">
-                            Daftar Mitra DUDI ({companies.total})
-                        </h3>
-                        <span className="text-xs text-neutral-500">
-                            Total: <strong>{companies.total} Mitra</strong>
-                        </span>
-                    </div>
+                    {hasActiveFilters && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleResetFilters}
+                            className="h-10 px-3 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center gap-1.5"
+                        >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            <span>Reset</span>
+                        </Button>
+                    )}
+                </div>
 
+                {/* Data Table */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs border-collapse">
+                        <table className="w-full text-left border-collapse table-fixed">
                             <thead>
-                                <tr className="border-b border-neutral-200 bg-neutral-100/70 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-800/70 dark:text-neutral-300 font-bold uppercase tracking-wider text-[11px]">
-                                    <th className="py-3.5 px-4">Instansi / DUDI</th>
-                                    <th className="py-3.5 px-4">Koordinat Maps & Radius</th>
-                                    <th className="py-3.5 px-4">Jam Masuk / Pulang</th>
-                                    <th className="py-3.5 px-4 text-center">Siswa Aktif</th>
-                                    <th className="py-3.5 px-4 text-right">Aksi</th>
+                                <tr className="bg-[#008953] text-white">
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-xl w-auto">
+                                        Instansi / Mitra DUDI
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider hidden md:table-cell w-56 whitespace-nowrap">
+                                        Jam Operasional
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-center hidden sm:table-cell w-36 whitespace-nowrap">
+                                        Siswa PKL
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-xl w-36 whitespace-nowrap">
+                                        Aksi
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700 font-medium">
                                 {companies.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-12 text-center text-neutral-500">
-                                            <Building2 className="h-8 w-8 mx-auto text-neutral-300 dark:text-neutral-700 mb-2" />
-                                            <p className="font-semibold text-sm">Belum ada data perusahaan DUDI.</p>
-                                            <p className="text-xs text-neutral-400 mt-0.5">Klik tombol "Tambah Perusahaan" untuk mendaftarkan mitra PKL.</p>
+                                        <td colSpan={4} className="py-16 text-center">
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                                    <Building2 className="h-6 w-6" />
+                                                </div>
+                                                <p className="text-sm font-bold text-slate-700">
+                                                    Tidak ada data perusahaan DUDI
+                                                </p>
+                                                <p className="text-xs text-slate-400">
+                                                    {hasActiveFilters
+                                                        ? 'Coba sesuaikan kata kunci pencarian Anda.'
+                                                        : 'Silakan daftarkan mitra industri tempat PKL baru terlebih dahulu.'}
+                                                </p>
+                                                {hasActiveFilters && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={handleResetFilters}
+                                                        className="mt-2 rounded-xl text-xs font-semibold"
+                                                    >
+                                                        Reset Pencarian
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ) : (
-                                    companies.data.map((company) => (
-                                        <tr key={company.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 transition">
-                                            <td className="py-3.5 px-4">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
-                                                        <Building2 className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-neutral-900 dark:text-white text-xs">
-                                                            {company.name}
+                                    companies.data.map((company) => {
+                                        const inStart = company.check_in_start.substring(0, 5);
+                                        const inEnd = company.check_in_end.substring(0, 5);
+                                        const outStart = company.check_out_start.substring(0, 5);
+
+                                        return (
+                                            <tr
+                                                key={company.id}
+                                                className="hover:bg-slate-50/70 transition-colors"
+                                            >
+                                                {/* Company Name & Address */}
+                                                <td className="px-5 py-4 max-w-0">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-[#008953] font-bold text-xs ring-1 ring-emerald-600/20">
+                                                            {getInitials(company.name)}
                                                         </div>
-                                                        <div className="flex items-center gap-1 text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-                                                            <MapPin className="h-3 w-3 shrink-0 text-neutral-400" />
-                                                            <span className="line-clamp-1">{company.address}</span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="font-bold text-slate-900 truncate">
+                                                                {company.name}
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-normal mt-0.5 min-w-0">
+                                                                <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                                                <span className="truncate block">{company.address}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-3.5 px-4">
-                                                <div className="flex flex-col gap-1">
-                                                    <a
-                                                        href={`https://www.google.com/maps?q=${company.latitude},${company.longitude}`}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="font-mono text-[11px] text-emerald-600 hover:underline flex items-center gap-1 font-semibold"
-                                                        title="Buka di Google Maps"
-                                                    >
-                                                        <span>{company.latitude}, {company.longitude}</span>
-                                                        <ExternalLink className="h-3 w-3 shrink-0" />
-                                                    </a>
-                                                    <div className="flex items-center gap-1 text-[11px] text-neutral-600 dark:text-neutral-400">
-                                                        <Radio className="h-3 w-3 text-emerald-600" />
-                                                        <span>Radius: <strong>{company.radius_meters}m</strong></span>
+                                                </td>
+
+                                                {/* Operational Hours */}
+                                                <td className="px-5 py-4 hidden md:table-cell whitespace-nowrap">
+                                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 shadow-2xs">
+                                                        <Clock className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                                                        <span className="text-xs font-bold text-slate-800">
+                                                            {inStart} - {outStart}
+                                                        </span>
+                                                        <span className="text-[11px] text-slate-400 font-medium border-l border-slate-200 pl-2">
+                                                            Batas: {inEnd}
+                                                        </span>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-3.5 px-4">
-                                                <div className="space-y-0.5 text-[11px]">
-                                                    <div className="text-neutral-700 dark:text-neutral-300">
-                                                        Masuk: <strong>{company.check_in_start.substring(0, 5)} - {company.check_in_end.substring(0, 5)}</strong>
+                                                </td>
+
+                                                {/* Students Count */}
+                                                <td className="px-5 py-4 text-center hidden sm:table-cell whitespace-nowrap">
+                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-[#008953] text-xs font-bold border border-emerald-200/80 shadow-2xs">
+                                                        <Users className="h-3.5 w-3.5 shrink-0" />
+                                                        <span>{company.students_count || 0} Siswa</span>
                                                     </div>
-                                                    <div className="text-neutral-500">
-                                                        Pulang: Mulai <strong>{company.check_out_start.substring(0, 5)}</strong>
+                                                </td>
+
+                                                {/* Actions */}
+                                                <td className="px-5 py-4 text-right whitespace-nowrap">
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        {/* Info / Detail Button */}
+                                                        <button
+                                                            onClick={() => setDetailCompany(company)}
+                                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                                            title="Lihat Detail & Titik Lokasi"
+                                                        >
+                                                            <Info className="h-4 w-4 stroke-[2]" />
+                                                        </button>
+
+                                                        {/* Edit Button */}
+                                                        <button
+                                                            onClick={() => openEditDialog(company)}
+                                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                                            title="Edit DUDI"
+                                                        >
+                                                            <Edit3 className="h-4 w-4 stroke-[2]" />
+                                                        </button>
+
+                                                        {/* Delete Button */}
+                                                        <button
+                                                            onClick={() => setDeleteCompany(company)}
+                                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-red-500 hover:bg-red-50 hover:text-red-600 transition shadow-2xs"
+                                                            title="Hapus DUDI"
+                                                        >
+                                                            <Trash2 className="h-4 w-4 stroke-[2]" />
+                                                        </button>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-3.5 px-4 text-center">
-                                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                                                    <Users className="h-3 w-3" />
-                                                    <span>{company.students_count || 0} Siswa</span>
-                                                </span>
-                                            </td>
-                                            <td className="py-3.5 px-4 text-right">
-                                                <div className="flex items-center justify-end gap-1.5">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => openEditDialog(company)}
-                                                        className="h-7 text-xs px-2"
-                                                    >
-                                                        <Edit2 className="h-3 w-3 mr-1" />
-                                                        <span>Edit</span>
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setDeleteCompany(company)}
-                                                        className="h-7 text-xs px-2 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
-                                                    >
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
                     </div>
 
                     {/* Pagination */}
-                    {companies.links && companies.links.length > 3 && (
-                        <div className="flex items-center justify-between border-t border-neutral-200 px-4 py-3 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
-                            <span className="text-xs text-neutral-500">
-                                Menampilkan {companies.data.length} dari {companies.total} mitra DUDI
+                    {companies.total > 0 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 bg-slate-50/50">
+                            <span className="text-xs text-slate-500 font-medium">
+                                Menampilkan{' '}
+                                <strong className="font-bold text-slate-800">
+                                    {companies.from || (companies.data.length > 0 ? 1 : 0)}
+                                </strong>{' '}
+                                sampai{' '}
+                                <strong className="font-bold text-slate-800">
+                                    {companies.to || companies.data.length}
+                                </strong>{' '}
+                                dari{' '}
+                                <strong className="font-bold text-slate-800">
+                                    {companies.total}
+                                </strong>{' '}
+                                mitra DUDI
                             </span>
-                            <div className="flex gap-1">
-                                {companies.links.map((link, idx) => (
-                                    <Button
-                                        key={idx}
-                                        variant={link.active ? 'default' : 'outline'}
-                                        size="sm"
-                                        disabled={!link.url}
-                                        onClick={() => link.url && router.get(link.url, {}, { preserveState: true })}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                        className="h-8 text-xs"
-                                    />
-                                ))}
-                            </div>
+
+                            {companies.links && companies.links.length > 3 && (
+                                <div className="flex items-center gap-1">
+                                    {companies.links.map((link, idx) => {
+                                        const isPrev = idx === 0;
+                                        const isNext = idx === companies.links.length - 1;
+
+                                        return (
+                                            <button
+                                                key={idx}
+                                                disabled={!link.url}
+                                                onClick={() =>
+                                                    link.url &&
+                                                    router.get(
+                                                        link.url,
+                                                        {},
+                                                        { preserveState: true, replace: true }
+                                                    )
+                                                }
+                                                className={`min-w-[32px] h-8 px-2 flex items-center justify-center rounded-lg text-xs font-bold transition ${
+                                                    link.active
+                                                        ? 'bg-[#008953] text-white shadow-xs'
+                                                        : link.url
+                                                          ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                                                          : 'bg-transparent text-slate-300 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                {isPrev ? (
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                ) : isNext ? (
+                                                    <ChevronRight className="h-4 w-4" />
+                                                ) : (
+                                                    <span
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: link.label,
+                                                        }}
+                                                    />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Create / Edit Dialog with Google Maps Coordinate Parser */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-lg max-h-[88vh] overflow-y-auto p-4 sm:p-6">
-                    <DialogHeader className="pb-1">
-                        <DialogTitle className="text-base font-bold">
-                            {editingCompany ? 'Edit Data Perusahaan DUDI' : 'Tambah Perusahaan DUDI Baru'}
-                        </DialogTitle>
-                        <DialogDescription className="text-xs">
-                            Masukkan nama instansi, alamat, dan koordinat Google Maps untuk titik presensi siswa.
-                        </DialogDescription>
+            {/* Detail Company Modal Dialog */}
+            <Dialog open={!!detailCompany} onOpenChange={() => setDetailCompany(null)}>
+                <DialogContent className="sm:max-w-lg p-5 sm:p-6 rounded-2xl bg-white border border-slate-200">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#d8f2e5] text-[#008953] shadow-xs">
+                                <Building2 className="h-6 w-6 stroke-[2.2]" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">
+                                    {detailCompany?.name}
+                                </DialogTitle>
+                                <DialogDescription className="text-xs text-slate-500 font-medium">
+                                    Informasi lengkap titik lokasi, geofence, dan jam kerja PKL.
+                                </DialogDescription>
+                            </div>
+                        </div>
                     </DialogHeader>
 
-                    <form onSubmit={handleSubmit} className="space-y-3.5 py-1">
+                    {detailCompany && (
+                        <div className="space-y-4 py-3">
+                            {/* Alamat */}
+                            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                    <MapPin className="h-3.5 w-3.5 text-[#008953]" />
+                                    <span>Alamat Lengkap</span>
+                                </span>
+                                <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-1">
+                                    {detailCompany.address}
+                                </p>
+                            </div>
+
+                            {/* GPS & Geofence Box */}
+                            <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-[#008953] flex items-center gap-1.5">
+                                        <Radio className="h-4 w-4" />
+                                        <span>Koordinat & Radius Presensi</span>
+                                    </span>
+                                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#008953] text-[11px] font-bold">
+                                        Radius: {detailCompany.radius_meters} Meter
+                                    </span>
+                                </div>
+
+                                <div className="bg-white p-3 rounded-xl border border-emerald-200/80 font-mono text-xs font-bold text-slate-800 flex items-center justify-between">
+                                    <span>{detailCompany.latitude}, {detailCompany.longitude}</span>
+                                    <a
+                                        href={`https://www.google.com/maps?q=${detailCompany.latitude},${detailCompany.longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-xs font-sans text-[#008953] hover:underline"
+                                    >
+                                        <span>Buka Maps</span>
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Jam Operasional Grid */}
+                            <div className="grid grid-cols-3 gap-2.5">
+                                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                                    <p className="text-[11px] font-bold text-slate-500">Mulai Masuk</p>
+                                    <p className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">
+                                        {detailCompany.check_in_start.substring(0, 5)} WIB
+                                    </p>
+                                </div>
+                                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                                    <p className="text-[11px] font-bold text-slate-500">Batas Masuk</p>
+                                    <p className="text-xs sm:text-sm font-bold text-amber-600 mt-0.5">
+                                        {detailCompany.check_in_end.substring(0, 5)} WIB
+                                    </p>
+                                </div>
+                                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                                    <p className="text-[11px] font-bold text-slate-500">Mulai Pulang</p>
+                                    <p className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">
+                                        {detailCompany.check_out_start.substring(0, 5)} WIB
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Info Siswa */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span className="text-xs font-semibold text-slate-600 flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-[#008953]" />
+                                    <span>Total Siswa PKL Ditempatkan</span>
+                                </span>
+                                <span className="font-bold text-xs text-[#008953] bg-emerald-100 px-3 py-1 rounded-lg">
+                                    {detailCompany.students_count || 0} Siswa
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter className="gap-2 pt-2 border-t border-slate-100">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDetailCompany(null)}
+                            className="h-10 rounded-xl text-slate-600 font-semibold"
+                        >
+                            Tutup
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                const target = detailCompany;
+                                setDetailCompany(null);
+                                if (target) openEditDialog(target);
+                            }}
+                            className="h-10 rounded-xl bg-[#008953] hover:bg-[#007346] font-bold text-white shadow-xs"
+                        >
+                            <Edit3 className="h-4 w-4 mr-1.5" />
+                            <span>Edit Data DUDI</span>
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Create / Edit Dialog */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent className="sm:max-w-lg max-h-[88vh] overflow-y-auto p-4 sm:p-6 rounded-2xl bg-white border border-slate-200">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d8f2e5] text-[#008953]">
+                                <Building2 className="h-5 w-5 stroke-[2.5]" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">
+                                    {editingCompany
+                                        ? 'Edit Data Tempat PKL (DUDI)'
+                                        : 'Tambah Mitra Tempat PKL (DUDI)'}
+                                </DialogTitle>
+                                <DialogDescription className="text-xs text-slate-500 font-medium">
+                                    Lengkapi data instansi, koordinat Google Maps geofence, dan jam kerja.
+                                </DialogDescription>
+                            </div>
+                        </div>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="space-y-4 py-2">
                         {/* Nama Instansi */}
                         <div className="space-y-1.5">
-                            <Label htmlFor="name" className="text-xs font-semibold">Nama Instansi / Perusahaan *</Label>
+                            <Label htmlFor="name" className="text-xs font-bold text-slate-700">
+                                Nama Instansi / Perusahaan *
+                            </Label>
                             <Input
                                 id="name"
                                 required
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                placeholder="Contoh: PT Amaliah Digital Media"
-                                className="h-9 text-xs"
+                                placeholder="Contoh: PT Wanteknologi / PT Amaliah Digital"
+                                className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs sm:text-sm font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                             />
-                            {errors?.name && <p className="text-xs text-red-500">{errors.name}</p>}
+                            {errors?.name && (
+                                <p className="text-[11px] font-semibold text-red-500">{errors.name}</p>
+                            )}
                         </div>
 
-                        {/* Alamat */}
+                        {/* Alamat Lengkap */}
                         <div className="space-y-1.5">
-                            <Label htmlFor="address" className="text-xs font-semibold">Alamat Lengkap *</Label>
+                            <Label htmlFor="address" className="text-xs font-bold text-slate-700">
+                                Alamat Lengkap Kantor / Lokasi PKL *
+                            </Label>
                             <Input
                                 id="address"
                                 required
                                 value={form.address}
                                 onChange={(e) => setForm({ ...form, address: e.target.value })}
-                                placeholder="Contoh: Jl. Tol Ciawi No. 1, Bogor, Jawa Barat"
-                                className="h-9 text-xs"
+                                placeholder="Contoh: Jl. Tol Ciawi No. 1, Ciawi, Bogor"
+                                className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs sm:text-sm font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                             />
-                            {errors?.address && <p className="text-xs text-red-500">{errors.address}</p>}
+                            {errors?.address && (
+                                <p className="text-[11px] font-semibold text-red-500">{errors.address}</p>
+                            )}
                         </div>
 
                         {/* Google Maps Smart Coordinate Box */}
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-3.5 dark:border-emerald-900/50 dark:bg-emerald-950/20 space-y-2.5">
+                        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                                <Label className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
-                                    <MapPin className="h-4 w-4 text-emerald-600" />
-                                    <span>Paste Koordinat Google Maps</span>
+                                <Label className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                                    <MapPin className="h-4 w-4 text-[#008953]" />
+                                    <span>Koordinat Google Maps</span>
                                 </Label>
                                 {parsedSuccess && (
-                                    <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                    <span className="text-[11px] font-bold text-[#008953] flex items-center gap-1">
                                         <CheckCircle2 className="h-3.5 w-3.5" />
                                         <span>Koordinat Valid</span>
                                     </span>
@@ -466,17 +707,21 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
                             <Input
                                 value={rawCoordinateInput}
                                 onChange={(e) => handleCoordinatePaste(e.target.value)}
-                                placeholder="Paste koordinat misal: -6.577449, 106.782421 atau link Maps"
-                                className="h-9 text-xs font-mono bg-white dark:bg-neutral-900 border-emerald-300 dark:border-emerald-800"
+                                placeholder="Paste koordinat misal: -6.577449, 106.782421"
+                                className="h-10 rounded-xl font-mono text-xs bg-white border-emerald-300 focus-visible:ring-1 focus-visible:ring-emerald-500"
                             />
                             {(errors?.latitude || errors?.longitude) && (
                                 <p className="text-[11px] font-semibold text-red-500">
                                     {errors.latitude || errors.longitude || 'Format koordinat tidak valid.'}
                                 </p>
                             )}
-                            <p className="text-[11px] text-neutral-500">
-                                💡 <strong>Tips:</strong> Buka Google Maps, klik kanan lokasi kantor, lalu klik angka koordinat untuk menyalin (contoh: <code>-6.577449, 106.782421</code>).
-                            </p>
+
+                            <div className="flex items-start gap-1.5 text-[11px] text-slate-600 bg-white/80 p-2.5 rounded-xl border border-emerald-100">
+                                <Info className="h-3.5 w-3.5 text-[#008953] shrink-0 mt-0.5" />
+                                <span>
+                                    Buka Google Maps, klik kanan titik lokasi kantor mitra, lalu klik angka koordinat untuk menyalin (contoh: <code>-6.577449, 106.782421</code>).
+                                </span>
+                            </div>
 
                             {/* Tombol Aksi Maps */}
                             <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -485,10 +730,10 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
                                     variant="outline"
                                     size="sm"
                                     onClick={openInGoogleMaps}
-                                    className="h-7 text-xs gap-1 bg-white dark:bg-neutral-900"
+                                    className="h-8 rounded-lg text-xs font-semibold gap-1.5 bg-white hover:bg-emerald-50 text-slate-700"
                                 >
-                                    <ExternalLink className="h-3 w-3 text-emerald-600" />
-                                    <span>Cek di Google Maps</span>
+                                    <ExternalLink className="h-3.5 w-3.5 text-[#008953]" />
+                                    <span>Buka di Google Maps</span>
                                 </Button>
 
                                 <Button
@@ -496,9 +741,9 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
                                     variant="outline"
                                     size="sm"
                                     onClick={searchOnGoogleMaps}
-                                    className="h-7 text-xs gap-1 bg-white dark:bg-neutral-900"
+                                    className="h-8 rounded-lg text-xs font-semibold gap-1.5 bg-white hover:bg-slate-50 text-slate-700"
                                 >
-                                    <Search className="h-3 w-3 text-blue-600" />
+                                    <Search className="h-3.5 w-3.5 text-blue-600" />
                                     <span>Cari Lokasi di Maps</span>
                                 </Button>
 
@@ -508,19 +753,19 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
                                     size="sm"
                                     onClick={getCurrentLocation}
                                     disabled={gettingLocation}
-                                    className="h-7 text-xs gap-1 bg-white dark:bg-neutral-900 ml-auto"
+                                    className="h-8 rounded-lg text-xs font-semibold gap-1.5 bg-white hover:bg-emerald-50 text-slate-700 ml-auto"
                                 >
-                                    <Crosshair className="h-3 w-3 text-neutral-600" />
-                                    <span>{gettingLocation ? 'GPS...' : 'Ambil GPS Saya'}</span>
+                                    <Crosshair className="h-3.5 w-3.5 text-[#008953]" />
+                                    <span>{gettingLocation ? 'Mengambil GPS...' : 'Gunakan GPS Saya'}</span>
                                 </Button>
                             </div>
                         </div>
 
-
-
                         {/* Radius Geofence */}
                         <div className="space-y-1.5">
-                            <Label htmlFor="radius_meters" className="text-xs font-semibold">Radius Geofence (Meter) *</Label>
+                            <Label htmlFor="radius_meters" className="text-xs font-bold text-slate-700">
+                                Radius Presensi Geofence (Meter) *
+                            </Label>
                             <Input
                                 id="radius_meters"
                                 required
@@ -529,56 +774,70 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
                                 max={1000}
                                 value={form.radius_meters}
                                 onChange={(e) => setForm({ ...form, radius_meters: Number(e.target.value) })}
-                                className="h-9 text-xs"
+                                className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs sm:text-sm font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                             />
-                            <p className="text-[11px] text-neutral-400">
+                            <p className="text-[11px] text-slate-500 font-medium">
                                 Jarak maksimal siswa dapat melakukan presensi dari titik kantor (disarankan 50 - 150 meter).
                             </p>
                         </div>
 
                         {/* Jam Operasional */}
-                        <div className="grid grid-cols-3 gap-2.5">
-                            <div className="space-y-1">
-                                <Label htmlFor="check_in_start" className="text-[11px] font-semibold">Mulai Masuk</Label>
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="check_in_start" className="text-xs font-bold text-slate-700">
+                                    Mulai Masuk
+                                </Label>
                                 <Input
                                     id="check_in_start"
                                     type="time"
                                     required
                                     value={form.check_in_start}
                                     onChange={(e) => setForm({ ...form, check_in_start: e.target.value })}
-                                    className="h-8 text-xs"
+                                    className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                                 />
                             </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="check_in_end" className="text-[11px] font-semibold">Batas Masuk</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="check_in_end" className="text-xs font-bold text-slate-700">
+                                    Batas Masuk
+                                </Label>
                                 <Input
                                     id="check_in_end"
                                     type="time"
                                     required
                                     value={form.check_in_end}
                                     onChange={(e) => setForm({ ...form, check_in_end: e.target.value })}
-                                    className="h-8 text-xs"
+                                    className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                                 />
                             </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="check_out_start" className="text-[11px] font-semibold">Mulai Pulang</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="check_out_start" className="text-xs font-bold text-slate-700">
+                                    Mulai Pulang
+                                </Label>
                                 <Input
                                     id="check_out_start"
                                     type="time"
                                     required
                                     value={form.check_out_start}
                                     onChange={(e) => setForm({ ...form, check_out_start: e.target.value })}
-                                    className="h-8 text-xs"
+                                    className="h-10 rounded-xl bg-slate-50/50 border-slate-200 text-xs font-medium focus-visible:ring-1 focus-visible:ring-emerald-500"
                                 />
                             </div>
                         </div>
 
-                        <DialogFooter className="pt-2">
-                            <Button type="button" variant="outline" size="sm" onClick={() => setIsDialogOpen(false)} className="text-xs">
+                        <DialogFooter className="gap-2 pt-3 border-t border-slate-100">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsDialogOpen(false)}
+                                className="h-10 rounded-xl text-slate-600 font-semibold"
+                            >
                                 Batal
                             </Button>
-                            <Button type="submit" size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold">
-                                {editingCompany ? 'Simpan Perubahan' : 'Tambah Perusahaan'}
+                            <Button
+                                type="submit"
+                                className="h-10 rounded-xl bg-[#008953] hover:bg-[#007346] font-bold text-white shadow-xs"
+                            >
+                                {editingCompany ? 'Simpan Perubahan' : 'Tambah Tempat PKL'}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -587,19 +846,32 @@ export default function CompaniesIndex({ companies, filters, errors }: Props) {
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!deleteCompany} onOpenChange={() => setDeleteCompany(null)}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="text-base font-bold">Konfirmasi Hapus Perusahaan</DialogTitle>
-                        <DialogDescription className="text-xs">
-                            Apakah Anda yakin ingin menghapus <strong>{deleteCompany?.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+                <DialogContent className="sm:max-w-md p-5 rounded-2xl bg-white border border-slate-200">
+                    <DialogHeader className="gap-2">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                            <AlertCircle className="h-5 w-5" />
+                        </div>
+                        <DialogTitle className="text-base font-bold text-slate-900">
+                            Hapus Mitra Tempat PKL (DUDI)
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+                            Apakah Anda yakin ingin menghapus data mitra <strong>{deleteCompany?.name}</strong>? Tindakan ini hanya dapat dilakukan jika belum ada siswa atau pembimbing yang ditugaskan di lokasi ini.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="mt-2">
-                        <Button variant="outline" size="sm" onClick={() => setDeleteCompany(null)} className="text-xs">
+                    <DialogFooter className="gap-2 pt-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteCompany(null)}
+                            className="h-10 rounded-xl text-slate-600 font-semibold"
+                        >
                             Batal
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={handleDelete} className="text-xs font-semibold">
-                            Ya, Hapus
+                        <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            className="h-10 rounded-xl font-bold bg-red-600 hover:bg-red-700"
+                        >
+                            Ya, Hapus DUDI
                         </Button>
                     </DialogFooter>
                 </DialogContent>

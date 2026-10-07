@@ -13,6 +13,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('settings/security', [SecurityController::class, 'edit'])->name('security.edit');
+    Route::get('settings/appearance', function () {
+        return \Inertia\Inertia::render('settings/appearance');
+    })->name('appearance.edit');
 
     Route::put('settings/password', [SecurityController::class, 'update'])
         ->middleware('throttle:6,1')

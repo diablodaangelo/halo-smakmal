@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figma Design Ready - Dashboard Admin Kelola Siswa</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased flex">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-slate-200 min-h-screen flex flex-col justify-between shrink-0">
+        <div>
+            <!-- Logo Brand -->
+            <div class="h-16 flex items-center gap-3 px-6 border-b border-slate-100">
+                <div class="h-9 w-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm shadow-emerald-500/30">
+                    H
+                </div>
+                <div>
+                    <div class="font-extrabold text-slate-900 text-sm tracking-tight">Halo SMKAmal</div>
+                    <div class="text-[11px] font-semibold text-emerald-600">Admin Portal</div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="p-4 space-y-1">
+                <div class="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Menu Utama
+                </div>
+
+                <a href="#" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-xs">
+                    <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Kelola Siswa</span>
+                </a>
+
+                <a href="#" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-slate-400"></i>
+                    <span>Kelola Guru</span>
+                </a>
+
+                <a href="#" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                    <i data-lucide="building-2" class="w-4 h-4 text-slate-400"></i>
+                    <span>Master DUDI</span>
+                </a>
+
+                <div class="pt-4 px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Pengaturan
+                </div>
+
+                <a href="#" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                    <i data-lucide="sliders" class="w-4 h-4 text-slate-400"></i>
+                    <span>Konfigurasi Sistem</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- User Profile Footer -->
+        <div class="p-4 border-t border-slate-100">
+            <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div class="h-9 w-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                    AD
+                </div>
+                <div class="overflow-hidden flex-1">
+                    <p class="text-xs font-bold text-slate-900 truncate">Administrator</p>
+                    <p class="text-[11px] text-slate-400 truncate">admin@smkamaliah.sch.id</p>
+                </div>
+                <i data-lucide="log-out" class="w-4 h-4 text-slate-400 hover:text-red-500 cursor-pointer"></i>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Navbar Header -->
+        <header class="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-6 sm:px-8">
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <span>Dashboard</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold">Kelola Siswa</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <i data-lucide="bell" class="w-5 h-5 text-slate-500 hover:text-slate-800 cursor-pointer"></i>
+                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>
+                </div>
+                <div class="h-6 w-px bg-slate-200"></div>
+                <div class="text-xs font-bold text-slate-700">Tahun Ajaran 2026/2027</div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+            <!-- Page Title Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 shadow-xs">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Kelola Data Siswa PKL</h1>
+                        <p class="text-xs sm:text-sm text-slate-500">Kelola akun siswa, penempatan mitra industri (DUDI), dan guru pembimbing.</p>
+                    </div>
+                </div>
+                <button class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl h-10 px-4 shadow-sm shadow-emerald-700/20 transition flex items-center gap-2 cursor-pointer">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span class="text-sm">Tambah Siswa Baru</span>
+                </button>
+            </div>
+
+            <!-- Metric Cards (4 Cards) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1: Total Siswa -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-slate-300 transition">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Siswa PKL</p>
+                        <h3 class="text-2xl font-extrabold text-slate-900 mt-1">128</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Siswa terdaftar aktif</p>
+                    </div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Card 2: Sudah Ada DUDI -->
+                <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-200 shadow-xs flex items-center justify-between hover:border-emerald-300 transition">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Sudah Ada DUDI</p>
+                        <h3 class="text-2xl font-extrabold text-emerald-900 mt-1">98</h3>
+                        <p class="text-xs text-emerald-600 font-medium mt-0.5">77% telah ditempatkan</p>
+                    </div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Card 3: Belum Ada DUDI -->
+                <div class="bg-amber-50/50 p-5 rounded-2xl border border-amber-200 shadow-xs flex items-center justify-between hover:border-amber-300 transition">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Belum Ada DUDI</p>
+                        <h3 class="text-2xl font-extrabold text-amber-900 mt-1">30</h3>
+                        <p class="text-xs text-amber-600 font-medium mt-0.5">Perlu plotting mitra</p>
+                    </div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                        <i data-lucide="building-2" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Card 4: Belum Ada Guru -->
+                <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-200 shadow-xs flex items-center justify-between hover:border-blue-300 transition">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-700">Belum Ada Guru</p>
+                        <h3 class="text-2xl font-extrabold text-blue-900 mt-1">12</h3>
+                        <p class="text-xs text-blue-600 font-medium mt-0.5">Perlu guru pembimbing</p>
+                    </div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
+                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Search Section -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <!-- Search Input -->
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" placeholder="Cari berdasarkan nama siswa, email, atau NIS..." class="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                    </div>
+
+                    <!-- Dropdowns -->
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <select class="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500">
+                            <option>Semua Perusahaan DUDI</option>
+                            <option>PT Telkom Indonesia</option>
+                            <option>PT Astra Honda Motor</option>
+                            <option>CV Media Kreasi</option>
+                            <option>⚠️ Belum Ada DUDI</option>
+                        </select>
+
+                        <select class="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500">
+                            <option>Semua Guru Pembimbing</option>
+                            <option>Bpk. Hendra Wijaya, M.Kom</option>
+                            <option>Ibu Sri Wahyuni, S.Pd</option>
+                            <option>⚠️ Belum Ada Guru</option>
+                        </select>
+
+                        <button class="h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base font-bold text-slate-900">Daftar Siswa PKL</h2>
+                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">128</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                            <tr>
+                                <th class="px-6 py-3.5">Identitas Siswa</th>
+                                <th class="px-6 py-3.5">Perusahaan DUDI</th>
+                                <th class="px-6 py-3.5">Guru Pembimbing</th>
+                                <th class="px-6 py-3.5 text-right">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <!-- Row 1 -->
+                            <tr class="hover:bg-slate-50/70 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                            MR
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-900 text-sm">Muhammad Rizky Pratama</div>
+                                            <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                                                <span>rizky@smkamaliah.sch.id</span>
+                                                <span>•</span>
+                                                <span class="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[11px] font-semibold">NIS: 212210001</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="inline-flex flex-col">
+                                        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                                            <i data-lucide="building-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                            <span>PT Telkom Indonesia</span>
+                                        </div>
+                                        <span class="text-[11px] text-slate-400 mt-1">Jl. Pajajaran No. 12, Bogor</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">
+                                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                        <span>Bpk. Hendra Wijaya, M.Kom</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2 -->
+                            <tr class="hover:bg-slate-50/70 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                            SA
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-900 text-sm">Siti Aisyah Nurhaliza</div>
+                                            <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                                                <span>aisyah@smkamaliah.sch.id</span>
+                                                <span>•</span>
+                                                <span class="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[11px] font-semibold">NIS: 212210002</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="inline-flex flex-col">
+                                        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                                            <i data-lucide="building-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                            <span>PT Astra Honda Motor</span>
+                                        </div>
+                                        <span class="text-[11px] text-slate-400 mt-1">Kawasan Industri Cikarang</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">
+                                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                        <span>Ibu Sri Wahyuni, S.Pd</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3 (Unassigned DUDI) -->
+                            <tr class="hover:bg-slate-50/70 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                            AF
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-900 text-sm">Ahmad Fauzi Rahman</div>
+                                            <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                                                <span>fauzi@smkamaliah.sch.id</span>
+                                                <span>•</span>
+                                                <span class="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[11px] font-semibold">NIS: 212210003</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
+                                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                        Belum Ditempatkan
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">
+                                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                        <span>Bpk. Hendra Wijaya, M.Kom</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 4 (Unassigned Teacher) -->
+                            <tr class="hover:bg-slate-50/70 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                            DA
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-900 text-sm">Dewi Anggraeni</div>
+                                            <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                                                <span>dewi@smkamaliah.sch.id</span>
+                                                <span>•</span>
+                                                <span class="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[11px] font-semibold">NIS: 212210004</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="inline-flex flex-col">
+                                        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                                            <i data-lucide="building-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                            <span>CV Media Kreasi Utama</span>
+                                        </div>
+                                        <span class="text-[11px] text-slate-400 mt-1">Jl. Raya Ciawi No. 45</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200">
+                                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                        Belum Ada Guru
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Pagination -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 px-6 py-4 bg-slate-50/50">
+                    <span class="text-xs text-slate-500 font-medium">
+                        Menampilkan <span class="font-bold text-slate-800">1 - 4</span> dari <span class="font-bold text-slate-800">128</span> siswa PKL
+                    </span>
+                    <div class="flex items-center gap-1">
+                        <button class="h-8 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100">Sebelumnya</button>
+                        <button class="h-8 w-8 rounded-lg bg-emerald-600 text-xs font-bold text-white shadow-xs">1</button>
+                        <button class="h-8 w-8 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100">2</button>
+                        <button class="h-8 w-8 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100">3</button>
+                        <span class="px-1 text-slate-400 text-xs">...</span>
+                        <button class="h-8 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100">Berikutnya</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

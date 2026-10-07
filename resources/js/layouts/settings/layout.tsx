@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, UserCog } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
@@ -8,12 +8,12 @@ import { edit as editSecurity } from '@/routes/security';
 
 const tabItems = [
     {
-        title: 'Profil & Foto',
+        title: 'Profil & Identitas',
         href: edit(),
         icon: User,
     },
     {
-        title: 'Keamanan / Password',
+        title: 'Keamanan Kata Sandi',
         href: editSecurity(),
         icon: Lock,
     },
@@ -24,17 +24,24 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
-            {/* Header */}
-            <div className="border-b border-neutral-200 dark:border-neutral-800 pb-4">
-                <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-                    Pengaturan Akun
-                </h1>
-                <p className="mt-0.5 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
-                    Kelola foto profil, nama panggilan interaktif, dan kata sandi akun Anda.
-                </p>
+            {/* Header Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
+                <div className="flex items-center gap-3.5">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d8f2e5] text-[#008953] shadow-xs ring-1 ring-[#008953]/10">
+                        <UserCog className="h-6 w-6 stroke-[2.2]" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                            Pengaturan Akun
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                            Kelola profil pengguna, foto avatar, dan keamanan kata sandi Anda.
+                        </p>
+                    </div>
+                </div>
 
-                {/* Horizontal Navigation Tabs (No nested sidebar) */}
-                <div className="flex flex-wrap items-center gap-2 mt-4">
+                {/* Clean Tab Pills */}
+                <div className="flex items-center gap-2 bg-slate-100/80 p-1 rounded-2xl self-start sm:self-auto border border-slate-200/60">
                     {tabItems.map((item, index) => {
                         const active = isCurrentOrParentUrl(item.href);
                         const Icon = item.icon;
@@ -43,10 +50,10 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 key={`${toUrl(item.href)}-${index}`}
                                 href={item.href}
                                 className={cn(
-                                    'inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition shadow-2xs',
+                                    'inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all',
                                     active
-                                        ? 'bg-emerald-600 text-white shadow-xs'
-                                        : 'bg-white text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-900 dark:text-neutral-300 dark:border-neutral-800 dark:hover:bg-neutral-800'
+                                        ? 'bg-[#008953] text-white shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                                 )}
                             >
                                 <Icon className="h-3.5 w-3.5" />

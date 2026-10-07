@@ -1,0 +1,330 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 960" width="1440" height="960" style="background:#F8FAFC; font-family:'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;">
+  <defs>
+    <!-- Shadow Filter -->
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#0F172A" flood-opacity="0.05" />
+    </filter>
+  </defs>
+
+  <!-- ==================== BACKGROUND ==================== -->
+  <rect width="1440" height="960" fill="#F8FAFC" />
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <g id="Sidebar">
+    <!-- Sidebar Background -->
+    <rect x="0" y="0" width="260" height="960" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+    
+    <!-- Logo Header -->
+    <g id="Sidebar-Logo" transform="translate(24, 20)">
+      <rect width="40" height="40" rx="10" fill="#059669" />
+      <text x="14" y="26" font-size="18" font-weight="800" fill="#FFFFFF">H</text>
+      <text x="50" y="20" font-size="15" font-weight="700" fill="#0F172A">Halo SMKAmal</text>
+      <text x="50" y="34" font-size="11" font-weight="600" fill="#059669">Admin Portal</text>
+    </g>
+    <line x1="0" y1="72" x2="260" y2="72" stroke="#F1F5F9" stroke-width="1" />
+
+    <!-- Sidebar Menu Group -->
+    <g id="Sidebar-Menu" transform="translate(16, 92)">
+      <text x="12" y="10" font-size="10" font-weight="700" fill="#94A3B8" letter-spacing="1">MENU UTAMA</text>
+      
+      <!-- Nav Item 1 (Active) -->
+      <g id="Nav-Kelola-Siswa" transform="translate(0, 24)">
+        <rect width="228" height="42" rx="10" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1" />
+        <circle cx="24" cy="21" r="7" fill="#059669" opacity="0.15" />
+        <!-- Lucide Users Icon Vector -->
+        <path d="M19 25 a3.5 3.5 0 1 0 0 -7 a3.5 3.5 0 0 0 0 7 z M27 25 a2.5 2.5 0 1 0 0 -5 a2.5 2.5 0 0 0 0 5 z" fill="#059669" />
+        <text x="44" y="26" font-size="13" font-weight="700" fill="#047857">Kelola Siswa</text>
+      </g>
+
+      <!-- Nav Item 2 -->
+      <g id="Nav-Kelola-Guru" transform="translate(0, 74)">
+        <rect width="228" height="42" rx="10" fill="transparent" />
+        <text x="44" y="26" font-size="13" font-weight="600" fill="#64748B">Kelola Guru</text>
+      </g>
+
+      <!-- Nav Item 3 -->
+      <g id="Nav-Master-DUDI" transform="translate(0, 122)">
+        <rect width="228" height="42" rx="10" fill="transparent" />
+        <text x="44" y="26" font-size="13" font-weight="600" fill="#64748B">Master DUDI</text>
+      </g>
+
+      <text x="12" y="190" font-size="10" font-weight="700" fill="#94A3B8" letter-spacing="1">PENGATURAN</text>
+      
+      <!-- Nav Item 4 -->
+      <g id="Nav-Konfigurasi" transform="translate(0, 204)">
+        <rect width="228" height="42" rx="10" fill="transparent" />
+        <text x="44" y="26" font-size="13" font-weight="600" fill="#64748B">Konfigurasi Sistem</text>
+      </g>
+    </g>
+
+    <!-- Sidebar User Profile Footer -->
+    <g id="Sidebar-User" transform="translate(16, 880)">
+      <rect width="228" height="60" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+      <circle cx="30" cy="30" r="18" fill="#059669" />
+      <text x="21" y="35" font-size="12" font-weight="700" fill="#FFFFFF">AD</text>
+      <text x="56" y="26" font-size="12" font-weight="700" fill="#0F172A">Administrator</text>
+      <text x="56" y="41" font-size="10" font-weight="500" fill="#64748B">admin@smkamaliah.sch.id</text>
+    </g>
+  </g>
+
+  <!-- ==================== TOP NAVBAR ==================== -->
+  <g id="Top-Navbar" transform="translate(260, 0)">
+    <rect width="1180" height="70" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+    
+    <!-- Breadcrumbs -->
+    <g transform="translate(32, 26)">
+      <text x="0" y="14" font-size="12" font-weight="600" fill="#64748B">Dashboard</text>
+      <text x="70" y="14" font-size="12" font-weight="600" fill="#94A3B8">/</text>
+      <rect x="85" y="-2" width="95" height="24" rx="6" fill="#ECFDF5" />
+      <text x="96" y="14" font-size="12" font-weight="700" fill="#047857">Kelola Siswa</text>
+    </g>
+
+    <!-- Right info -->
+    <g transform="translate(1000, 26)">
+      <rect width="140" height="26" rx="6" fill="#F1F5F9" />
+      <text x="14" y="17" font-size="11" font-weight="700" fill="#475569">T.A 2026/2027</text>
+    </g>
+  </g>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <g id="Main-Content" transform="translate(292, 94)">
+
+    <!-- Header Section -->
+    <g id="Page-Header" transform="translate(0, 0)">
+      <!-- Title & Icon -->
+      <rect width="44" height="44" rx="12" fill="#D1FAE5" />
+      <circle cx="22" cy="22" r="10" fill="#047857" opacity="0.2" />
+      
+      <text x="56" y="22" font-size="22" font-weight="800" fill="#0F172A">Kelola Data Siswa PKL</text>
+      <text x="56" y="40" font-size="12" font-weight="500" fill="#64748B">Kelola akun siswa, penempatan mitra industri (DUDI), dan guru pembimbing.</text>
+
+      <!-- Primary Action Button: Tambah Siswa -->
+      <g id="Btn-Tambah-Siswa" transform="translate(930, 4)">
+        <rect width="186" height="40" rx="10" fill="#059669" filter="url(#card-shadow)" />
+        <text x="24" y="24" font-size="16" font-weight="700" fill="#FFFFFF">+</text>
+        <text x="44" y="25" font-size="13" font-weight="700" fill="#FFFFFF">Tambah Siswa Baru</text>
+      </g>
+    </g>
+
+    <!-- ==================== STAT METRICS CARDS (4 Cards) ==================== -->
+    <g id="Metric-Cards" transform="translate(0, 72)">
+      <!-- Card 1: Total Siswa -->
+      <g id="Card-Total-Siswa" transform="translate(0, 0)">
+        <rect width="265" height="96" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" filter="url(#card-shadow)" />
+        <text x="20" y="28" font-size="10" font-weight="700" fill="#64748B" letter-spacing="0.5">TOTAL SISWA PKL</text>
+        <text x="20" y="60" font-size="28" font-weight="800" fill="#0F172A">128</text>
+        <text x="20" y="78" font-size="11" font-weight="500" fill="#94A3B8">Siswa terdaftar aktif</text>
+        
+        <rect x="195" y="24" width="48" height="48" rx="12" fill="#F1F5F9" />
+        <circle cx="219" cy="48" r="10" fill="#475569" opacity="0.3" />
+      </g>
+
+      <!-- Card 2: Sudah Ada DUDI -->
+      <g id="Card-Sudah-DUDI" transform="translate(283, 0)">
+        <rect width="265" height="96" rx="16" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1" filter="url(#card-shadow)" />
+        <text x="20" y="28" font-size="10" font-weight="700" fill="#047857" letter-spacing="0.5">SUDAH ADA DUDI</text>
+        <text x="20" y="60" font-size="28" font-weight="800" fill="#064E3B">98</text>
+        <text x="20" y="78" font-size="11" font-weight="600" fill="#059669">77% telah ditempatkan</text>
+
+        <rect x="195" y="24" width="48" height="48" rx="12" fill="#D1FAE5" />
+        <circle cx="219" cy="48" r="10" fill="#059669" />
+        <text x="214" y="52" font-size="12" font-weight="800" fill="#FFFFFF">✓</text>
+      </g>
+
+      <!-- Card 3: Belum Ada DUDI -->
+      <g id="Card-Belum-DUDI" transform="translate(566, 0)">
+        <rect width="265" height="96" rx="16" fill="#FFFBEB" stroke="#FDE68A" stroke-width="1" filter="url(#card-shadow)" />
+        <text x="20" y="28" font-size="10" font-weight="700" fill="#B45309" letter-spacing="0.5">BELUM ADA DUDI</text>
+        <text x="20" y="60" font-size="28" font-weight="800" fill="#78350F">30</text>
+        <text x="20" y="78" font-size="11" font-weight="600" fill="#D97706">Perlu plotting mitra</text>
+
+        <rect x="195" y="24" width="48" height="48" rx="12" fill="#FEF3C7" />
+        <circle cx="219" cy="48" r="10" fill="#D97706" opacity="0.3" />
+      </g>
+
+      <!-- Card 4: Belum Ada Guru -->
+      <g id="Card-Belum-Guru" transform="translate(849, 0)">
+        <rect width="267" height="96" rx="16" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1" filter="url(#card-shadow)" />
+        <text x="20" y="28" font-size="10" font-weight="700" fill="#1D4ED8" letter-spacing="0.5">BELUM ADA GURU</text>
+        <text x="20" y="60" font-size="28" font-weight="800" fill="#1E3A8A">12</text>
+        <text x="20" y="78" font-size="11" font-weight="600" fill="#2563EB">Perlu guru pembimbing</text>
+
+        <rect x="197" y="24" width="48" height="48" rx="12" fill="#DBEAFE" />
+        <circle cx="221" cy="48" r="10" fill="#2563EB" opacity="0.3" />
+      </g>
+    </g>
+
+    <!-- ==================== FILTER & SEARCH BAR ==================== -->
+    <g id="Filter-Bar" transform="translate(0, 188)">
+      <rect width="1116" height="64" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" filter="url(#card-shadow)" />
+      
+      <!-- Search Input Field -->
+      <g transform="translate(16, 12)">
+        <rect width="440" height="40" rx="10" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+        <circle cx="22" cy="20" r="5" stroke="#94A3B8" stroke-width="1.5" fill="none" />
+        <line x1="26" y1="24" x2="30" y2="28" stroke="#94A3B8" stroke-width="1.5" />
+        <text x="40" y="24" font-size="12" font-weight="500" fill="#94A3B8">Cari berdasarkan nama siswa, email, atau NIS...</text>
+      </g>
+
+      <!-- Dropdown DUDI -->
+      <g transform="translate(470, 12)">
+        <rect width="220" height="40" rx="10" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+        <text x="16" y="25" font-size="12" font-weight="600" fill="#334155">Semua Perusahaan DUDI</text>
+        <text x="195" y="24" font-size="10" fill="#64748B">▼</text>
+      </g>
+
+      <!-- Dropdown Guru -->
+      <g transform="translate(702, 12)">
+        <rect width="220" height="40" rx="10" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+        <text x="16" y="25" font-size="12" font-weight="600" fill="#334155">Semua Guru Pembimbing</text>
+        <text x="195" y="24" font-size="10" fill="#64748B">▼</text>
+      </g>
+
+      <!-- Reset Filter Button -->
+      <g transform="translate(934, 12)">
+        <rect width="166" height="40" rx="10" fill="#F1F5F9" />
+        <text x="50" y="24" font-size="12" font-weight="700" fill="#475569">Reset Filter</text>
+      </g>
+    </g>
+
+    <!-- ==================== DATA TABLE CARD ==================== -->
+    <g id="Data-Table" transform="translate(0, 272)">
+      <rect width="1116" height="520" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" filter="url(#card-shadow)" />
+
+      <!-- Table Header Title -->
+      <text x="24" y="36" font-size="15" font-weight="800" fill="#0F172A">Daftar Siswa PKL</text>
+      <rect x="156" y="20" width="36" height="22" rx="11" fill="#F1F5F9" />
+      <text x="164" y="35" font-size="11" font-weight="800" fill="#475569">128</text>
+      <line x1="0" y1="56" x2="1116" y2="56" stroke="#F1F5F9" stroke-width="1" />
+
+      <!-- Table Column Headers -->
+      <g transform="translate(0, 56)">
+        <rect width="1116" height="40" fill="#F8FAFC" />
+        <text x="24" y="24" font-size="11" font-weight="700" fill="#64748B" letter-spacing="0.5">IDENTITAS SISWA</text>
+        <text x="360" y="24" font-size="11" font-weight="700" fill="#64748B" letter-spacing="0.5">PERUSAHAAN DUDI</text>
+        <text x="700" y="24" font-size="11" font-weight="700" fill="#64748B" letter-spacing="0.5">GURU PEMBIMBING</text>
+        <text x="1010" y="24" font-size="11" font-weight="700" fill="#64748B" letter-spacing="0.5">TINDAKAN</text>
+        <line x1="0" y1="40" x2="1116" y2="40" stroke="#E2E8F0" stroke-width="1" />
+      </g>
+
+      <!-- ROW 1 -->
+      <g id="Row-1" transform="translate(0, 96)">
+        <!-- Hover / Fill -->
+        <rect width="1116" height="74" fill="#FFFFFF" />
+        <circle cx="44" cy="37" r="18" fill="#D1FAE5" />
+        <text x="34" y="42" font-size="11" font-weight="800" fill="#065F46">MR</text>
+        <text x="74" y="30" font-size="13" font-weight="700" fill="#0F172A">Muhammad Rizky Pratama</text>
+        <text x="74" y="48" font-size="11" font-weight="500" fill="#64748B">rizky@smkamaliah.sch.id • NIS: 212210001</text>
+
+        <!-- Company Badge -->
+        <rect x="360" y="18" width="220" height="26" rx="6" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1" />
+        <text x="372" y="35" font-size="11" font-weight="700" fill="#047857">🏢 PT Telkom Indonesia</text>
+        <text x="360" y="58" font-size="10" font-weight="500" fill="#94A3B8">Jl. Pajajaran No. 12, Bogor</text>
+
+        <!-- Teacher Badge -->
+        <rect x="700" y="24" width="200" height="26" rx="6" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1" />
+        <text x="712" y="41" font-size="11" font-weight="600" fill="#1E293B">🎓 Bpk. Hendra Wijaya, M.Kom</text>
+
+        <!-- Action Buttons -->
+        <rect x="1010" y="22" width="30" height="30" rx="8" fill="#F1F5F9" />
+        <text x="1019" y="42" font-size="12" fill="#059669">✎</text>
+        <rect x="1050" y="22" width="30" height="30" rx="8" fill="#FEF2F2" />
+        <text x="1060" y="41" font-size="12" fill="#DC2626">🗑</text>
+
+        <line x1="0" y1="74" x2="1116" y2="74" stroke="#F1F5F9" stroke-width="1" />
+      </g>
+
+      <!-- ROW 2 -->
+      <g id="Row-2" transform="translate(0, 170)">
+        <rect width="1116" height="74" fill="#FFFFFF" />
+        <circle cx="44" cy="37" r="18" fill="#D1FAE5" />
+        <text x="36" y="42" font-size="11" font-weight="800" fill="#065F46">SA</text>
+        <text x="74" y="30" font-size="13" font-weight="700" fill="#0F172A">Siti Aisyah Nurhaliza</text>
+        <text x="74" y="48" font-size="11" font-weight="500" fill="#64748B">aisyah@smkamaliah.sch.id • NIS: 212210002</text>
+
+        <rect x="360" y="18" width="220" height="26" rx="6" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1" />
+        <text x="372" y="35" font-size="11" font-weight="700" fill="#047857">🏢 PT Astra Honda Motor</text>
+        <text x="360" y="58" font-size="10" font-weight="500" fill="#94A3B8">Kawasan Industri Cikarang</text>
+
+        <rect x="700" y="24" width="200" height="26" rx="6" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1" />
+        <text x="712" y="41" font-size="11" font-weight="600" fill="#1E293B">🎓 Ibu Sri Wahyuni, S.Pd</text>
+
+        <rect x="1010" y="22" width="30" height="30" rx="8" fill="#F1F5F9" />
+        <text x="1019" y="42" font-size="12" fill="#059669">✎</text>
+        <rect x="1050" y="22" width="30" height="30" rx="8" fill="#FEF2F2" />
+        <text x="1060" y="41" font-size="12" fill="#DC2626">🗑</text>
+
+        <line x1="0" y1="74" x2="1116" y2="74" stroke="#F1F5F9" stroke-width="1" />
+      </g>
+
+      <!-- ROW 3 (Belum DUDI Warning) -->
+      <g id="Row-3" transform="translate(0, 244)">
+        <rect width="1116" height="74" fill="#FFFFFF" />
+        <circle cx="44" cy="37" r="18" fill="#D1FAE5" />
+        <text x="36" y="42" font-size="11" font-weight="800" fill="#065F46">AF</text>
+        <text x="74" y="30" font-size="13" font-weight="700" fill="#0F172A">Ahmad Fauzi Rahman</text>
+        <text x="74" y="48" font-size="11" font-weight="500" fill="#64748B">fauzi@smkamaliah.sch.id • NIS: 212210003</text>
+
+        <!-- Warning Badge -->
+        <rect x="360" y="24" width="160" height="26" rx="6" fill="#FFFBEB" stroke="#FDE68A" stroke-width="1" />
+        <text x="372" y="41" font-size="11" font-weight="700" fill="#B45309">⚠️ Belum Ditempatkan</text>
+
+        <rect x="700" y="24" width="200" height="26" rx="6" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1" />
+        <text x="712" y="41" font-size="11" font-weight="600" fill="#1E293B">🎓 Bpk. Hendra Wijaya, M.Kom</text>
+
+        <rect x="1010" y="22" width="30" height="30" rx="8" fill="#F1F5F9" />
+        <text x="1019" y="42" font-size="12" fill="#059669">✎</text>
+        <rect x="1050" y="22" width="30" height="30" rx="8" fill="#FEF2F2" />
+        <text x="1060" y="41" font-size="12" fill="#DC2626">🗑</text>
+
+        <line x1="0" y1="74" x2="1116" y2="74" stroke="#F1F5F9" stroke-width="1" />
+      </g>
+
+      <!-- ROW 4 (Belum Guru Warning) -->
+      <g id="Row-4" transform="translate(0, 318)">
+        <rect width="1116" height="74" fill="#FFFFFF" />
+        <circle cx="44" cy="37" r="18" fill="#D1FAE5" />
+        <text x="36" y="42" font-size="11" font-weight="800" fill="#065F46">DA</text>
+        <text x="74" y="30" font-size="13" font-weight="700" fill="#0F172A">Dewi Anggraeni</text>
+        <text x="74" y="48" font-size="11" font-weight="500" fill="#64748B">dewi@smkamaliah.sch.id • NIS: 212210004</text>
+
+        <rect x="360" y="18" width="220" height="26" rx="6" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1" />
+        <text x="372" y="35" font-size="11" font-weight="700" fill="#047857">🏢 CV Media Kreasi</text>
+        <text x="360" y="58" font-size="10" font-weight="500" fill="#94A3B8">Jl. Raya Ciawi No. 45</text>
+
+        <!-- Warning Guru Badge -->
+        <rect x="700" y="24" width="160" height="26" rx="6" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1" />
+        <text x="712" y="41" font-size="11" font-weight="700" fill="#1D4ED8">⚠️ Belum Ada Guru</text>
+
+        <rect x="1010" y="22" width="30" height="30" rx="8" fill="#F1F5F9" />
+        <text x="1019" y="42" font-size="12" fill="#059669">✎</text>
+        <rect x="1050" y="22" width="30" height="30" rx="8" fill="#FEF2F2" />
+        <text x="1060" y="41" font-size="12" fill="#DC2626">🗑</text>
+
+        <line x1="0" y1="74" x2="1116" y2="74" stroke="#F1F5F9" stroke-width="1" />
+      </g>
+
+      <!-- Table Footer / Pagination -->
+      <g id="Pagination" transform="translate(0, 460)">
+        <rect width="1116" height="60" fill="#F8FAFC" rx="0" />
+        <text x="24" y="35" font-size="12" font-weight="500" fill="#64748B">Menampilkan halaman <tspan font-weight="700" fill="#0F172A">1</tspan> dari <tspan font-weight="700" fill="#0F172A">13</tspan> (128 total siswa)</text>
+        
+        <!-- Page Buttons -->
+        <g transform="translate(860, 14)">
+          <rect x="0" y="0" width="32" height="32" rx="8" fill="#059669" />
+          <text x="12" y="21" font-size="12" font-weight="700" fill="#FFFFFF">1</text>
+          
+          <rect x="40" y="0" width="32" height="32" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+          <text x="52" y="21" font-size="12" font-weight="600" fill="#64748B">2</text>
+          
+          <rect x="80" y="0" width="32" height="32" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+          <text x="92" y="21" font-size="12" font-weight="600" fill="#64748B">3</text>
+
+          <rect x="120" y="0" width="100" height="32" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+          <text x="134" y="21" font-size="12" font-weight="600" fill="#64748B">Berikutnya →</text>
+        </g>
+      </g>
+    </g>
+
+  </g>
+</svg>
