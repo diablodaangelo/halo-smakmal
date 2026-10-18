@@ -28,6 +28,7 @@ class Attendance extends Model
         'check_out_lat',
         'check_out_long',
         'selfie_path',
+        'check_out_selfie_path',
         'status',
         'permission_reason',
         'permission_doc',
@@ -43,6 +44,8 @@ class Attendance extends Model
      */
     protected $appends = [
         'permission_doc_url',
+        'selfie_url',
+        'check_out_selfie_url',
     ];
 
     /**
@@ -51,6 +54,22 @@ class Attendance extends Model
     public function getPermissionDocUrlAttribute(): ?string
     {
         return $this->permission_doc ? asset('storage/' . $this->permission_doc) : null;
+    }
+
+    /**
+     * Get selfie_url accessor.
+     */
+    public function getSelfieUrlAttribute(): ?string
+    {
+        return $this->selfie_path ? asset('storage/' . $this->selfie_path) : null;
+    }
+
+    /**
+     * Get check_out_selfie_url accessor.
+     */
+    public function getCheckOutSelfieUrlAttribute(): ?string
+    {
+        return $this->check_out_selfie_path ? asset('storage/' . $this->check_out_selfie_path) : null;
     }
 
     /**

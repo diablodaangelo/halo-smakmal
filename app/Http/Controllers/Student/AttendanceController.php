@@ -72,6 +72,7 @@ class AttendanceController extends Controller
                     'is_in_radius' => $inRadius,
                     'radius_limit' => $company?->radius_meters ?? 100,
                     'selfie_url' => $att->selfie_path ? asset('storage/' . $att->selfie_path) : null,
+                    'check_out_selfie_url' => $att->check_out_selfie_path ? asset('storage/' . $att->check_out_selfie_path) : null,
                 ];
             });
 
@@ -269,6 +270,7 @@ class AttendanceController extends Controller
             'check_out_time' => $currentTime,
             'check_out_lat' => $validated['latitude'],
             'check_out_long' => $validated['longitude'],
+            'check_out_selfie_path' => $imagePath,
         ]);
 
         // Build informative message

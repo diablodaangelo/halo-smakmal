@@ -1,26 +1,20 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
     AlertCircle,
-    Building2,
+    ArrowUpRight,
     Calendar,
     Camera,
     CheckCircle2,
     Clock,
     Crosshair,
     FileText,
-    GraduationCap,
     MapPin,
     Moon,
-    Radio,
     RefreshCw,
-    ShieldCheck,
     Sun,
-    UserCheck,
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -60,12 +54,35 @@ interface DashboardProps {
     };
     today_date: string;
     role: 'admin' | 'guru_pembimbing' | 'pembimbing_dudi' | 'siswa';
-    stats?: Record<string, any>;
-    recent_attendances?: Array<any>;
-    recent_journals?: Array<any>;
-    companies?: Array<any>;
-    students?: Array<any>;
-    guided_students?: Array<any>;
+    stats?: {
+        has_checked_in?: boolean;
+        has_checked_out?: boolean;
+        has_permission?: boolean;
+        permission_status?: string | null;
+        permission_reason?: string | null;
+        permission_is_approved?: boolean | null;
+        permission_doc_url?: string | null;
+        check_in_time?: string | null;
+        check_out_time?: string | null;
+        attendance_status?: string | null;
+        total_hadir?: number;
+        total_terlambat?: number;
+        total_presensi?: number;
+        punctuality_rate?: number;
+        total_journals?: number;
+        approved_journals?: number;
+        total_prayers?: number;
+    };
+    recent_attendances?: Array<{
+        id: number;
+        date_raw: string;
+        date_formatted: string;
+        date_short: string;
+        day_name: string;
+        check_in_time?: string | null;
+        check_out_time?: string | null;
+        status: string;
+    }>;
     today_attendance?: any;
     flash?: {
         success?: string;
@@ -77,14 +94,8 @@ interface DashboardProps {
 export default function Dashboard({
     user,
     today_date,
-    role,
     stats = {},
     recent_attendances = [],
-    recent_journals = [],
-    companies = [],
-    students = [],
-    guided_students = [],
-    today_attendance,
     flash,
     errors,
 }: DashboardProps) {
@@ -97,7 +108,6 @@ export default function Dashboard({
     const [locError, setLocError] = useState<string | null>(null);
     const [distanceMeters, setDistanceMeters] = useState<number | null>(null);
     const [selfieData, setSelfieData] = useState<string | null>(null);
-    const [isCameraActive, setIsCameraActive] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [currentTimeStr, setCurrentTimeStr] = useState<string>('');
     const [greeting, setGreeting] = useState<string>('Selamat Datang');
@@ -148,29 +158,30 @@ export default function Dashboard({
         }
         setLocating(true);
         setLocError(null);
+
         navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
                 setCurrentLat(lat);
                 setCurrentLng(lng);
                 setLocating(false);
 
-                if (user?.company?.latitude && user?.company?.longitude) {
+                if (user?.company) {
                     const dist = calculateDistance(
                         lat,
                         lng,
-                        Number(user.company.latitude),
-                        Number(user.company.longitude)
+                        user.company.latitude,
+                        user.company.longitude
                     );
                     setDistanceMeters(dist);
                 }
             },
-            () => {
+            (err) => {
                 setLocating(false);
-                setLocError('Gagal mendeteksi lokasi GPS. Pastikan izin lokasi aktif.');
+                setLocError(`Gagal mendapatkan koordinat GPS: ${err.message}. Pastikan izin lokasi aktif.`);
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
     };
 
@@ -186,10 +197,8 @@ export default function Dashboard({
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
             }
-            setIsCameraActive(true);
-        } catch {
-            setCameraError('Gagal mengakses kamera. Pastikan izin kamera aktif pada browser.');
-            setIsCameraActive(false);
+        } catch (err: any) {
+            setCameraError('Kamera tidak dapat diakses. Mohon berikan izin akses kamera.');
         }
     };
 
@@ -198,7 +207,6 @@ export default function Dashboard({
             streamRef.current.getTracks().forEach((track) => track.stop());
             streamRef.current = null;
         }
-        setIsCameraActive(false);
     };
 
     const takeSelfie = () => {
@@ -296,330 +304,383 @@ export default function Dashboard({
         <>
             <Head title="Dashboard Siswa - Halo-Smakmal" />
 
-            <div className="flex flex-1 flex-col gap-4 p-4 sm:p-5 lg:p-6 w-full max-w-6xl mx-auto">
-                {/* 1. Header Banner & Sapaan */}
-                <div className="relative rounded-2xl bg-[#008953] p-5 sm:p-6 text-white shadow-xs">
-                    <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-                        {/* Left Side: School & Student Identity */}
-                        <div className="space-y-2.5">
-                            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-emerald-100">
-                                <span>SMK Amaliah 1 & 2 Ciawi</span>
-                                <span className="text-emerald-300/60">•</span>
-                                <span>Siswa PKL</span>
-                                {user?.class_name && (
-                                    <>
-                                        <span className="text-emerald-300/60">•</span>
-                                        <span className="rounded-md bg-white/20 px-2 py-0.5 text-white font-bold">{user.class_name}</span>
-                                    </>
-                                )}
-                                {user?.nis_nip && (
-                                    <>
-                                        <span className="text-emerald-300/60">•</span>
-                                        <span className="font-mono">NIS: {user.nis_nip}</span>
-                                    </>
-                                )}
-                            </div>
+            <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto w-full">
+                {/* 1. Header Section */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                            Dashboard Siswa
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                            {greeting}, {displayName} • {user.class_name ? `${user.class_name}` : 'Siswa PKL'}{user.nis_nip ? ` (NIS: ${user.nis_nip})` : ''}
+                        </p>
+                    </div>
 
-                            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl text-white">
-                                {greeting}, {displayName}
-                            </h1>
-
-                            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
-                                <div className="inline-flex items-center gap-1.5 rounded-lg bg-black/15 px-3 py-1.5 text-emerald-50">
-                                    <Building2 className="size-3.5 text-emerald-300" />
-                                    <span>Tempat PKL: <strong className="font-semibold text-white">{user?.company?.name || 'Belum Ditempatkan'}</strong></span>
-                                </div>
-
-                                {user?.mentor_teacher ? (
-                                    <Link
-                                        href={`/teachers/${user.mentor_teacher.slug || user.mentor_teacher.id}`}
-                                        className="inline-flex items-center gap-1.5 rounded-lg bg-black/15 px-3 py-1.5 text-emerald-50 transition hover:bg-black/25 hover:text-white"
-                                    >
-                                        <GraduationCap className="size-3.5 text-emerald-300" />
-                                        <span>Guru Pembimbing: <strong className="font-semibold text-white underline underline-offset-2">{user.mentor_teacher.name}</strong></span>
-                                    </Link>
-                                ) : (
-                                    <div className="inline-flex items-center gap-1.5 rounded-lg bg-black/15 px-3 py-1.5 text-emerald-50">
-                                        <GraduationCap className="size-3.5 text-emerald-300" />
-                                        <span>Guru Pembimbing: <strong className="font-semibold text-white">Belum Ditugaskan</strong></span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Right Side: Clean Modern Date Card */}
-                        <div className="shrink-0 self-start md:self-center">
-                            <div className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 border border-white/15 shadow-2xs">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-[#008953] shadow-xs font-bold">
-                                    <Calendar className="size-4" />
-                                </div>
-                                <div className="text-left">
-                                    <div className="text-xs font-bold text-white tracking-wide">{today_date}</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-3.5 py-2.5 shadow-2xs self-start sm:self-auto">
+                        <Calendar className="h-4 w-4 text-[#008953]" />
+                        <span className="text-xs font-bold text-slate-700">{today_date}</span>
                     </div>
                 </div>
 
                 {/* Notification Flash Alerts */}
                 {flash?.success && (
-                    <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800 shadow-xs">
-                        <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+                    <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-xs sm:text-sm font-semibold text-emerald-800 shadow-2xs">
+                        <CheckCircle2 className="h-5 w-5 shrink-0 text-[#008953]" />
                         <div>{flash.success}</div>
                     </div>
                 )}
 
                 {(flash?.error || errors?.attendance || errors?.error) && (
-                    <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-800 shadow-xs">
+                    <div className="flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50/90 p-4 text-xs sm:text-sm font-semibold text-rose-800 shadow-2xs">
                         <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
                         <div>{flash?.error || errors?.attendance || errors?.error}</div>
                     </div>
                 )}
 
-                {/* 2. LIVE PRESENSI KEHADIRAN SISWA */}
-                <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
-                    {/* Header: Title & Status */}
-                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3.5">
+                {/* 2. Section Presensi Hari Ini (Live Attendance Action) */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                    {/* Green Header Bar (Matching Admin Table Header Style) */}
+                    <div className="bg-[#008953] px-5 py-4 text-white flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h2 className="text-base sm:text-lg font-bold text-slate-900">Presensi Hari Ini</h2>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                                {user?.company ? `${user.company.name} • Toleransi Radius: ${user.company.radius_meters}m` : 'Belum terhubung ke DUDI'}
+                            <div className="flex items-center gap-2">
+                                <Clock className="size-5 text-white" />
+                                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                                    Presensi Kehadiran Hari Ini
+                                </h2>
+                            </div>
+                            <p className="text-xs text-emerald-100 mt-0.5">
+                                {user?.company
+                                    ? `${user.company.name} • Toleransi Radius: ${user.company.radius_meters}m`
+                                    : 'Belum terhubung ke instansi tempat PKL'}
                             </p>
                         </div>
 
                         <div>
                             {stats?.has_permission ? (
                                 <span
-                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold ${
                                         stats?.permission_is_approved === true
-                                            ? 'bg-emerald-50 text-[#008953] ring-1 ring-emerald-600/20'
+                                            ? 'bg-white text-[#008953] shadow-xs'
                                             : stats?.permission_is_approved === false
-                                            ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-600/20'
-                                            : 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20'
+                                            ? 'bg-rose-500 text-white'
+                                            : 'bg-amber-400 text-amber-950 shadow-xs'
                                     }`}
                                 >
                                     <span
-                                        className={`size-1.5 rounded-full ${
+                                        className={`size-2 rounded-full ${
                                             stats?.permission_is_approved === true
                                                 ? 'bg-[#008953]'
                                                 : stats?.permission_is_approved === false
-                                                ? 'bg-rose-600'
-                                                : 'bg-amber-600'
+                                                ? 'bg-white'
+                                                : 'bg-amber-950'
                                         }`}
                                     />
                                     {stats?.permission_is_approved === true
-                                        ? `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} Disetujui Guru`
+                                        ? `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} Disetujui`
                                         : stats?.permission_is_approved === false
-                                        ? `Izin Ditolak (Alpa)`
-                                        : `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} (Menunggu Konfirmasi)`}
+                                        ? `Izin Ditolak`
+                                        : `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} (Menunggu Persetujuan)`}
                                 </span>
                             ) : (
                                 <span
-                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold ${
                                         stats?.has_checked_out
-                                            ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20'
+                                            ? 'bg-white text-[#008953] shadow-xs'
                                             : stats?.has_checked_in
                                             ? stats?.attendance_status === 'hadir'
-                                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20'
-                                                : 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20'
-                                            : 'bg-slate-100 text-slate-600 ring-1 ring-slate-300/60'
+                                                ? 'bg-white text-[#008953] shadow-xs'
+                                                : 'bg-amber-400 text-amber-950 shadow-xs'
+                                            : 'bg-white/15 text-white border border-white/20'
                                     }`}
                                 >
                                     <span
-                                        className={`size-1.5 rounded-full ${
+                                        className={`size-2 rounded-full ${
                                             stats?.has_checked_out
-                                                ? 'bg-blue-600'
+                                                ? 'bg-[#008953]'
                                                 : stats?.has_checked_in
-                                                ? 'bg-emerald-600'
-                                                : 'bg-slate-400'
+                                                ? stats?.attendance_status === 'hadir'
+                                                    ? 'bg-[#008953]'
+                                                    : 'bg-amber-950'
+                                                : 'bg-white/70'
                                         }`}
                                     />
                                     {stats?.has_checked_out
                                         ? 'Presensi Selesai'
                                         : stats?.has_checked_in
-                                        ? `Masuk: ${stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}`
+                                        ? `Check-In (${stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'})`
                                         : 'Belum Presensi'}
                                 </span>
                             )}
                         </div>
                     </div>
 
-                    {/* Jika Siswa Sedang Mengajukan Izin / Sakit */}
-                    {stats?.has_permission ? (
-                        <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/50 p-4 sm:p-5">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-amber-200/60 pb-3">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="flex size-9 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold shrink-0">
-                                        <FileText className="size-5" />
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-slate-900">
-                                            Permohonan Tidak Masuk:{' '}
-                                            <span className="uppercase text-amber-800 font-extrabold">
-                                                {stats.permission_status}
-                                            </span>
+                    <div className="p-5 sm:p-6">
+                        {/* Jika Siswa Sedang Mengajukan Izin / Sakit */}
+                        {stats?.has_permission ? (
+                            <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 sm:p-5">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-3.5">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-50 text-[#008953] font-bold shrink-0">
+                                            <FileText className="size-5" />
                                         </div>
-                                        <div className="text-[11px] text-slate-500">
-                                            {stats.permission_is_approved === true
-                                                ? 'Permohonan telah diverifikasi dan disetujui Guru Pembimbing.'
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-900">
+                                                Permohonan Tidak Masuk:{' '}
+                                                <span className="uppercase text-[#008953] font-black">
+                                                    {stats.permission_status}
+                                                </span>
+                                            </div>
+                                            <div className="text-[11px] text-slate-500">
+                                                {stats.permission_is_approved === true
+                                                    ? 'Permohonan telah diverifikasi dan disetujui Guru Pembimbing.'
+                                                    : stats.permission_is_approved === false
+                                                    ? 'Permohonan tidak disetujui oleh Guru Pembimbing.'
+                                                    : 'Menunggu konfirmasi verifikasi dari Guru Pembimbing.'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span
+                                        className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold self-start sm:self-auto border ${
+                                            stats.permission_is_approved === true
+                                                ? 'bg-emerald-50 text-[#008953] border-emerald-200'
                                                 : stats.permission_is_approved === false
-                                                ? 'Permohonan tidak disetujui oleh Guru Pembimbing.'
-                                                : 'Menunggu konfirmasi verifikasi dari Guru Pembimbing.'}
-                                        </div>
-                                    </div>
-                                </div>
-                                <span
-                                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold self-start sm:self-auto ${
-                                        stats.permission_is_approved === true
-                                            ? 'bg-emerald-100 text-[#008953]'
+                                                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                                : 'bg-amber-50 text-amber-800 border-amber-200'
+                                        }`}
+                                    >
+                                        {stats.permission_is_approved === true
+                                            ? 'Disetujui'
                                             : stats.permission_is_approved === false
-                                            ? 'bg-rose-100 text-rose-700'
-                                            : 'bg-amber-100 text-amber-800'
-                                    }`}
-                                >
-                                    {stats.permission_is_approved === true
-                                        ? 'Disetujui'
-                                        : stats.permission_is_approved === false
-                                        ? 'Ditolak'
-                                        : 'Menunggu Persetujuan'}
-                                </span>
-                            </div>
-
-                            <div className="mt-3 text-xs text-slate-700 space-y-2">
-                                <div>
-                                    <span className="font-bold text-slate-900">Keterangan / Alasan:</span>
-                                    <p className="mt-1 text-slate-600 bg-white rounded-lg p-2.5 border border-amber-100/80">
-                                        {stats.permission_reason || '-'}
-                                    </p>
+                                            ? 'Ditolak'
+                                            : 'Menunggu Persetujuan'}
+                                    </span>
                                 </div>
-                                {stats.permission_doc_url && (
-                                    <div className="pt-1">
-                                        <a
-                                            href={stats.permission_doc_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
-                                        >
-                                            <FileText className="size-3.5" />
-                                            <span>Lihat Dokumen / Surat Keterangan yang Diunggah</span>
-                                        </a>
+
+                                <div className="mt-3.5 text-xs text-slate-700 space-y-2">
+                                    <div>
+                                        <span className="font-bold text-slate-900">Keterangan / Alasan:</span>
+                                        <p className="mt-1 text-slate-600 bg-white rounded-xl p-3 border border-slate-200/80">
+                                            {stats.permission_reason || '-'}
+                                        </p>
                                     </div>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        /* Check-In & Check-Out 2-Columns */
-                        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 pt-4">
-                            {/* Check-In Block */}
-                            <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-                                <div>
-                                    <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                                            <Sun className="size-4 text-amber-500" />
-                                            <span>Jam Masuk</span>
+                                    {stats.permission_doc_url && (
+                                        <div className="pt-1">
+                                            <a
+                                                href={stats.permission_doc_url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#008953] hover:text-emerald-700 transition-colors"
+                                            >
+                                                <FileText className="size-4" />
+                                                <span>Lihat Surat Keterangan / Dokumen Lampiran</span>
+                                                <ArrowUpRight className="size-3.5" />
+                                            </a>
                                         </div>
-                                        <span>Batas: {user?.company?.check_in_end ? user.company.check_in_end.substring(0, 5) : '08:00'} WIB</span>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            /* Check-In & Check-Out 2-Columns */
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                {/* Check-In Block */}
+                                <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5">
+                                    <div>
+                                        <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
+                                            <div className="flex items-center gap-1.5 text-slate-800 font-bold">
+                                                <Sun className="size-4 text-[#008953]" />
+                                                <span>Presensi Masuk (Check-In)</span>
+                                            </div>
+                                            <span>Batas: {user?.company?.check_in_end ? user.company.check_in_end.substring(0, 5) : '08:00'} WIB</span>
+                                        </div>
+
+                                        <div className="mt-3 flex items-baseline justify-between">
+                                            <div className="font-mono text-3xl font-black text-slate-900">
+                                                {stats?.check_in_time ? `${stats.check_in_time}` : '-- : --'}
+                                                <span className="text-xs font-sans font-semibold text-slate-400 ml-1.5">WIB</span>
+                                            </div>
+                                            {stats?.has_checked_in && (
+                                                <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+                                                    stats?.attendance_status === 'hadir'
+                                                        ? 'bg-emerald-50 text-[#008953] border border-emerald-200'
+                                                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                                }`}>
+                                                    {stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="mt-2.5 flex items-baseline justify-between">
-                                        <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900">
-                                            {stats?.check_in_time ? `${stats.check_in_time}` : '-- : --'}
-                                            <span className="text-xs font-sans font-medium text-slate-400 ml-1.5">WIB</span>
-                                        </div>
-                                        {stats?.has_checked_in && (
-                                            <span className={`text-xs font-bold ${stats?.attendance_status === 'hadir' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                                {stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}
-                                            </span>
+                                    <div className="mt-5">
+                                        {!stats?.has_checked_in ? (
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    onClick={() => openAttendanceModal('check_in')}
+                                                    className="flex-1 gap-2 bg-[#008953] hover:bg-[#007346] text-white font-bold text-xs h-10 rounded-xl shadow-xs cursor-pointer transition-all"
+                                                >
+                                                    <Camera className="size-4" />
+                                                    <span>Presensi Masuk</span>
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() => setIsPermissionModalOpen(true)}
+                                                    className="gap-1.5 border-slate-200 bg-white text-slate-700 hover:bg-slate-100 font-bold text-xs h-10 px-3.5 rounded-xl shadow-xs shrink-0 cursor-pointer"
+                                                    title="Ajukan izin atau sakit"
+                                                >
+                                                    <FileText className="size-4 text-[#008953]" />
+                                                    <span>Izin / Sakit</span>
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-100 py-2.5 text-xs font-bold text-[#008953]">
+                                                <CheckCircle2 className="size-4 text-[#008953]" />
+                                                <span>Check-In Tercatat ({stats.check_in_time} WIB)</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="mt-4">
-                                    {!stats?.has_checked_in ? (
-                                        <div className="flex items-center gap-2">
+                                {/* Check-Out Block */}
+                                <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5">
+                                    <div>
+                                        <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
+                                            <div className="flex items-center gap-1.5 text-slate-800 font-bold">
+                                                <Moon className="size-4 text-[#008953]" />
+                                                <span>Presensi Pulang (Check-Out)</span>
+                                            </div>
+                                            <span>Mulai: {user?.company?.check_out_start ? user.company.check_out_start.substring(0, 5) : '17:00'} WIB</span>
+                                        </div>
+
+                                        <div className="mt-3 flex items-baseline justify-between">
+                                            <div className="font-mono text-3xl font-black text-slate-900">
+                                                {stats?.check_out_time ? `${stats.check_out_time}` : '-- : --'}
+                                                <span className="text-xs font-sans font-semibold text-slate-400 ml-1.5">WIB</span>
+                                            </div>
+                                            {stats?.has_checked_out && (
+                                                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-[#008953] border border-emerald-200">
+                                                    Selesai
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5">
+                                        {stats?.has_checked_in && !stats?.has_checked_out ? (
                                             <Button
-                                                onClick={() => openAttendanceModal('check_in')}
-                                                className="flex-1 gap-2 bg-[#008953] hover:bg-[#007346] text-white font-semibold text-xs h-9 sm:h-10 rounded-xl shadow-xs cursor-pointer"
+                                                onClick={() => openAttendanceModal('check_out')}
+                                                className="w-full gap-2 bg-[#008953] hover:bg-[#007346] text-white font-bold text-xs h-10 rounded-xl shadow-xs transition-all cursor-pointer"
                                             >
                                                 <Camera className="size-4" />
-                                                <span>Presensi Masuk</span>
+                                                <span>Presensi Pulang</span>
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={() => setIsPermissionModalOpen(true)}
-                                                className="gap-1.5 border-amber-200 bg-amber-50/80 text-amber-800 hover:bg-amber-100 hover:text-amber-900 font-bold text-xs h-9 sm:h-10 px-3.5 rounded-xl shadow-xs shrink-0 cursor-pointer"
-                                                title="Ajukan permohonan izin atau sakit"
-                                            >
-                                                <FileText className="size-4 text-amber-600" />
-                                                <span>Izin / Sakit</span>
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-100/60 py-2 text-xs font-semibold text-emerald-800">
-                                            <CheckCircle2 className="size-4 text-emerald-600" />
-                                            <span>Check-In Tercatat ({stats.check_in_time} WIB)</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Check-Out Block */}
-                            <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-                                <div>
-                                    <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                                            <Moon className="size-4 text-indigo-500" />
-                                            <span>Jam Pulang</span>
-                                        </div>
-                                        <span>Mulai: {user?.company?.check_out_start ? user.company.check_out_start.substring(0, 5) : '17:00'} WIB</span>
-                                    </div>
-
-                                    <div className="mt-2.5 flex items-baseline justify-between">
-                                        <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900">
-                                            {stats?.check_out_time ? `${stats.check_out_time}` : '-- : --'}
-                                            <span className="text-xs font-sans font-medium text-slate-400 ml-1.5">WIB</span>
-                                        </div>
-                                        {stats?.has_checked_out && (
-                                            <span className="text-xs font-bold text-blue-600">Selesai</span>
+                                        ) : stats?.has_checked_out ? (
+                                            <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-100 py-2.5 text-xs font-bold text-[#008953]">
+                                                <CheckCircle2 className="size-4 text-[#008953]" />
+                                                <span>Check-Out Selesai ({stats.check_out_time} WIB)</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-100 py-2.5 text-xs font-semibold text-slate-400">
+                                                <Clock className="size-4 text-slate-400" />
+                                                <span>Menunggu Presensi Masuk</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
+                            </div>
+                        )}
 
-                                <div className="mt-4">
-                                    {stats?.has_checked_in && !stats?.has_checked_out ? (
-                                        <Button
-                                            onClick={() => openAttendanceModal('check_out')}
-                                            className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 sm:h-10 rounded-xl shadow-xs"
-                                        >
-                                            <Camera className="size-4" />
-                                            <span>Presensi Pulang</span>
-                                        </Button>
-                                    ) : stats?.has_checked_out ? (
-                                        <div className="flex items-center justify-center gap-1.5 rounded-xl bg-blue-100/60 py-2 text-xs font-semibold text-blue-800">
-                                            <CheckCircle2 className="size-4 text-blue-600" />
-                                            <span>Check-Out Selesai ({stats.check_out_time} WIB)</span>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-100/80 py-2 text-xs font-medium text-slate-400">
-                                            <Clock className="size-4 text-slate-400" />
-                                            <span>Menunggu Check-In</span>
-                                        </div>
-                                    )}
-                                </div>
+                        {/* Geofence Footer Note */}
+                        {user?.company && (
+                            <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 pt-3 border-t border-slate-100">
+                                <MapPin className="size-4 text-[#008953] shrink-0" />
+                                <span className="truncate">
+                                    {user.company.name} • {user.company.address || 'Lokasi kantor industri DUDI'}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* 3. Section Riwayat Presensi Terkini */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                    {/* Green Header Bar (Matching Admin Table Header Style) */}
+                    <div className="bg-[#008953] px-5 py-4 text-white flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <Clock className="size-5 text-white" />
+                            <div>
+                                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                                    Riwayat Presensi Terkini
+                                </h2>
+                                <p className="text-xs text-emerald-100">
+                                    Catatan presensi masuk dan kepulangan 5 hari aktif terakhir
+                                </p>
                             </div>
                         </div>
-                    )}
 
-                    {/* Geofence Footer Note */}
-                    {user?.company && (
-                        <div className="mt-3.5 flex items-center gap-2 text-xs text-slate-500 pt-2.5 border-t border-slate-100">
-                            <MapPin className="size-3.5 text-[#008953] shrink-0" />
-                            <span className="truncate">
-                                {user.company.address || user.company.name}
-                            </span>
-                        </div>
-                    )}
+                        <Link
+                            href="/student/attendances"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-xl border border-white/20 transition-all self-start sm:self-auto"
+                        >
+                            <span>Lihat Semua Riwayat</span>
+                            <ArrowUpRight className="size-3.5" />
+                        </Link>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                                    <th className="py-3 px-5">Hari & Tanggal</th>
+                                    <th className="py-3 px-5">Jam Masuk</th>
+                                    <th className="py-3 px-5">Jam Pulang</th>
+                                    <th className="py-3 px-5 text-right">Status Kehadiran</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                {recent_attendances.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="py-12 text-center text-xs text-slate-400">
+                                            Belum ada catatan riwayat presensi.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    recent_attendances.map((att) => (
+                                        <tr key={att.id} className="hover:bg-slate-50/70 transition-colors">
+                                            <td className="py-3.5 px-5">
+                                                <div className="font-bold text-slate-900">{att.day_name}</div>
+                                                <div className="text-[11px] text-slate-400">{att.date_short}</div>
+                                            </td>
+                                            <td className="py-3.5 px-5 font-mono">
+                                                {att.check_in_time ? `${att.check_in_time} WIB` : '-'}
+                                            </td>
+                                            <td className="py-3.5 px-5 font-mono">
+                                                {att.check_out_time ? `${att.check_out_time} WIB` : '-'}
+                                            </td>
+                                            <td className="py-3.5 px-5 text-right">
+                                                <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[11px] font-bold border ${
+                                                    att.status === 'hadir'
+                                                        ? 'bg-emerald-50 text-[#008953] border-emerald-200'
+                                                        : att.status === 'terlambat'
+                                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                                                }`}>
+                                                    {att.status === 'hadir'
+                                                        ? 'Hadir Tepat'
+                                                        : att.status === 'terlambat'
+                                                        ? 'Terlambat'
+                                                        : att.status === 'izin'
+                                                        ? 'Izin'
+                                                        : att.status === 'sakit'
+                                                        ? 'Sakit'
+                                                        : att.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -627,10 +688,10 @@ export default function Dashboard({
             <Dialog open={isAttendanceModalOpen} onOpenChange={closeAttendanceModal}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-base font-bold text-neutral-900">
+                        <DialogTitle className="text-base font-bold text-slate-900">
                             {attendanceType === 'check_in' ? 'Presensi Masuk (Check-In)' : 'Presensi Pulang (Check-Out)'}
                         </DialogTitle>
-                        <DialogDescription className="text-xs text-neutral-500">
+                        <DialogDescription className="text-xs text-slate-500">
                             Sistem akan memverifikasi lokasi GPS radius kantor DUDI dan foto selfie wajah langsung.
                         </DialogDescription>
                     </DialogHeader>
@@ -642,7 +703,7 @@ export default function Dashboard({
                                 {/* Time Evaluation */}
                                 {attendanceType === 'check_in' ? (
                                     currentTimeStr > (user.company.check_in_end?.slice(0, 5) || '08:00') ? (
-                                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 flex items-start gap-2">
+                                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2.5">
                                             <Clock className="size-4 shrink-0 text-amber-600 mt-0.5" />
                                             <div>
                                                 <span className="font-bold">Keterangan: Terlambat</span>
@@ -652,8 +713,8 @@ export default function Dashboard({
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-2.5 text-xs text-emerald-900 flex items-start gap-2">
-                                            <CheckCircle2 className="size-4 shrink-0 text-emerald-600 mt-0.5" />
+                                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 flex items-start gap-2.5">
+                                            <CheckCircle2 className="size-4 shrink-0 text-[#008953] mt-0.5" />
                                             <div>
                                                 <span className="font-bold">Keterangan: Tepat Waktu</span>
                                                 <p className="text-[11px] mt-0.5">
@@ -664,18 +725,18 @@ export default function Dashboard({
                                     )
                                 ) : (
                                     currentTimeStr < (user.company.check_out_start?.slice(0, 5) || '17:00') ? (
-                                        <div className="rounded-lg border border-rose-300 bg-rose-50 p-2.5 text-xs text-rose-900 flex items-start gap-2">
-                                            <AlertCircle className="size-4 shrink-0 text-rose-600 mt-0.5" />
+                                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2.5">
+                                            <AlertCircle className="size-4 shrink-0 text-amber-600 mt-0.5" />
                                             <div>
                                                 <span className="font-bold">Keterangan: Pulang Lebih Awal</span>
                                                 <p className="text-[11px] mt-0.5">
-                                                    Waktu saat ini ({currentTimeStr} WIB) belum mencapai jam pulang yang ditentukan ({user.company.check_out_start?.slice(0, 5)} WIB).
+                                                    Waktu saat ini ({currentTimeStr} WIB) belum mencapai jam pulang ({user.company.check_out_start?.slice(0, 5)} WIB).
                                                 </p>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-2.5 text-xs text-emerald-900 flex items-start gap-2">
-                                            <CheckCircle2 className="size-4 shrink-0 text-emerald-600 mt-0.5" />
+                                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 flex items-start gap-2.5">
+                                            <CheckCircle2 className="size-4 shrink-0 text-[#008953] mt-0.5" />
                                             <div>
                                                 <span className="font-bold">Keterangan: Jam Pulang Sesuai</span>
                                                 <p className="text-[11px] mt-0.5">
@@ -689,7 +750,7 @@ export default function Dashboard({
                                 {/* Location Geofence Evaluation */}
                                 {distanceMeters !== null && (
                                     distanceMeters > user.company.radius_meters ? (
-                                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 flex items-start gap-2">
+                                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2.5">
                                             <MapPin className="size-4 shrink-0 text-amber-600 mt-0.5" />
                                             <div>
                                                 <span className="font-bold">Keterangan: Di Luar Radius</span>
@@ -699,8 +760,8 @@ export default function Dashboard({
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-2.5 text-xs text-emerald-900 flex items-start gap-2">
-                                            <CheckCircle2 className="size-4 shrink-0 text-emerald-600 mt-0.5" />
+                                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 flex items-start gap-2.5">
+                                            <CheckCircle2 className="size-4 shrink-0 text-[#008953] mt-0.5" />
                                             <div>
                                                 <span className="font-bold">Keterangan: Lokasi Sesuai</span>
                                                 <p className="text-[11px] mt-0.5">
@@ -714,24 +775,24 @@ export default function Dashboard({
                         )}
 
                         {/* GPS Location Status Box */}
-                        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3.5 space-y-2">
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-2">
                             <div className="flex items-center justify-between text-xs">
-                                <span className="font-semibold text-neutral-700">Koordinat GPS Anda:</span>
+                                <span className="font-bold text-slate-700">Koordinat GPS Anda:</span>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
                                     onClick={getGPSLocation}
                                     disabled={locating}
-                                    className="h-6 text-[11px] px-2 gap-1 border-neutral-300 bg-white"
+                                    className="h-7 text-xs px-2.5 gap-1 border-slate-200 bg-white"
                                 >
-                                    <Crosshair className={`size-3 ${locating ? 'animate-spin' : ''}`} />
-                                    {locating ? 'Mendeteksi...' : 'Perbarui GPS'}
+                                    <Crosshair className={`size-3.5 text-[#008953] ${locating ? 'animate-spin' : ''}`} />
+                                    <span>{locating ? 'Mendeteksi...' : 'Perbarui GPS'}</span>
                                 </Button>
                             </div>
 
                             {currentLat && currentLng ? (
-                                <div className="text-xs text-neutral-600 space-y-1">
+                                <div className="text-xs text-slate-600 space-y-1">
                                     <div className="font-mono text-[11px]">
                                         Lat: {currentLat.toFixed(6)}, Long: {currentLng.toFixed(6)}
                                     </div>
@@ -745,8 +806,8 @@ export default function Dashboard({
 
                         {/* Webcam Selfie Stream / Preview */}
                         <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-neutral-700">Foto Selfie Langsung *</Label>
-                            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-900 flex items-center justify-center border border-neutral-200">
+                            <Label className="text-xs font-bold text-slate-700">Foto Selfie Kehadiran *</Label>
+                            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-900 flex items-center justify-center border border-slate-200">
                                 {!selfieData ? (
                                     <>
                                         <video
@@ -761,10 +822,10 @@ export default function Dashboard({
                                                 type="button"
                                                 onClick={takeSelfie}
                                                 size="sm"
-                                                className="bg-[#008953] hover:bg-[#007346] text-white gap-1.5 shadow-lg text-xs"
+                                                className="bg-[#008953] hover:bg-[#007346] text-white gap-1.5 shadow-lg text-xs rounded-xl"
                                             >
                                                 <Camera className="size-4" />
-                                                Ambil Foto Selfie
+                                                <span>Ambil Foto Selfie</span>
                                             </Button>
                                         </div>
                                     </>
@@ -781,10 +842,10 @@ export default function Dashboard({
                                                 variant="secondary"
                                                 onClick={startCamera}
                                                 size="sm"
-                                                className="gap-1.5 text-xs shadow-lg bg-white/90 hover:bg-white text-neutral-800"
+                                                className="gap-1.5 text-xs shadow-lg bg-white/90 hover:bg-white text-slate-800 rounded-xl"
                                             >
                                                 <RefreshCw className="size-3.5" />
-                                                Ulangi Foto
+                                                <span>Ulangi Foto</span>
                                             </Button>
                                         </div>
                                     </>
@@ -794,13 +855,13 @@ export default function Dashboard({
                         </div>
 
                         <DialogFooter className="pt-3 gap-2 sm:gap-0">
-                            <Button type="button" variant="outline" onClick={closeAttendanceModal}>
+                            <Button type="button" variant="outline" onClick={closeAttendanceModal} className="rounded-xl">
                                 Batal
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={!currentLat || !currentLng || !selfieData}
-                                className="bg-[#008953] hover:bg-[#007346] text-white font-semibold"
+                                className="bg-[#008953] hover:bg-[#007346] text-white font-bold rounded-xl"
                             >
                                 Kirim Presensi
                             </Button>
@@ -814,7 +875,7 @@ export default function Dashboard({
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                            <FileText className="size-5 text-amber-600" />
+                            <FileText className="size-5 text-[#008953]" />
                             <span>Ajukan Izin Tidak Masuk PKL</span>
                         </DialogTitle>
                         <DialogDescription className="text-xs text-slate-500">
@@ -844,58 +905,58 @@ export default function Dashboard({
                                     onClick={() => setPermissionStatus('sakit')}
                                     className={`p-3 rounded-xl border text-xs font-bold text-left transition cursor-pointer flex items-center justify-between ${
                                         permissionStatus === 'sakit'
-                                            ? 'border-purple-600 bg-purple-50 text-purple-700 ring-1 ring-purple-600'
+                                            ? 'border-[#008953] bg-emerald-50 text-[#008953] ring-1 ring-[#008953]'
                                             : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                                     }`}
                                 >
-                                    <span>Sakit</span>
-                                    {permissionStatus === 'sakit' && <CheckCircle2 className="size-4 text-purple-600" />}
+                                    <span>Sakit (Surat Dokter)</span>
+                                    {permissionStatus === 'sakit' && <CheckCircle2 className="size-4 text-[#008953]" />}
                                 </button>
                             </div>
                         </div>
 
                         {/* Alasan / Keterangan */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-bold text-slate-700">Alasan / Keterangan *</Label>
+                            <Label className="text-xs font-bold text-slate-700">Alasan Lengkap *</Label>
                             <textarea
                                 value={permissionReason}
                                 onChange={(e) => setPermissionReason(e.target.value)}
-                                required
                                 rows={3}
-                                placeholder="Contoh: Mengalami demam dan flu, istirahat atas anjuran dokter..."
-                                className="w-full rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition resize-none"
+                                required
+                                placeholder="Jelaskan alasan izin / sakit secara rinci..."
+                                className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 focus:border-[#008953] focus:ring-1 focus:ring-[#008953] outline-none"
                             />
                         </div>
 
-                        {/* Lampiran Dokumen */}
+                        {/* Upload Surat / Bukti */}
                         <div className="space-y-1.5">
                             <Label className="text-xs font-bold text-slate-700">
-                                Foto Surat Dokter / Surat Izin Ortu <span className="font-normal text-slate-400">(Opsional)</span>
+                                Unggah Surat Keterangan / Bukti <span className="text-slate-400 font-normal">(Opsional)</span>
                             </Label>
                             <input
                                 type="file"
-                                accept="image/jpeg,image/png,image/jpg,application/pdf"
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 onChange={(e) => setPermissionDoc(e.target.files?.[0] || null)}
-                                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-[#008953] hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50/50"
+                                className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#008953] hover:file:bg-emerald-100 cursor-pointer"
                             />
-                            <p className="text-[10px] text-slate-400">Format yang didukung: JPG, PNG, atau PDF (maksimal 5MB)</p>
+                            <p className="text-[11px] text-slate-400">Format: JPG, PNG, atau PDF (Maks. 2MB)</p>
                         </div>
 
-                        <DialogFooter className="pt-2 gap-2 sm:gap-0">
+                        <DialogFooter className="pt-3 gap-2 sm:gap-0">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => setIsPermissionModalOpen(false)}
-                                disabled={isSubmittingPermission}
+                                className="rounded-xl text-xs font-semibold"
                             >
                                 Batal
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={isSubmittingPermission || !permissionReason.trim()}
-                                className="bg-[#008953] hover:bg-[#007346] text-white font-bold"
+                                className="bg-[#008953] hover:bg-[#007346] text-white font-bold text-xs rounded-xl"
                             >
-                                {isSubmittingPermission ? 'Mengirim...' : 'Kirim Permohonan Izin'}
+                                {isSubmittingPermission ? 'Mengirim Permohonan...' : 'Kirim Permohonan Izin'}
                             </Button>
                         </DialogFooter>
                     </form>

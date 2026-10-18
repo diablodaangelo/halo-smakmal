@@ -153,6 +153,7 @@ class AttendanceController extends Controller
                 'is_in_radius' => $inRadius,
                 'radius_limit' => $company?->radius_meters ?? 100,
                 'selfie_url' => $att->selfie_path ? asset('storage/' . $att->selfie_path) : null,
+                'check_out_selfie_url' => $att->check_out_selfie_path ? asset('storage/' . $att->check_out_selfie_path) : null,
             ];
         });
 

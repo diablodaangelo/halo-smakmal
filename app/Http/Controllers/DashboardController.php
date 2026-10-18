@@ -161,6 +161,9 @@ class DashboardController extends Controller
                 'total_terlambat' => $totalTerlambat,
                 'total_presensi' => $totalPresensi,
                 'punctuality_rate' => $totalPresensi > 0 ? round(($totalHadir / $totalPresensi) * 100, 1) : 100,
+                'total_journals' => DailyJournal::where('user_id', $user->id)->count(),
+                'approved_journals' => DailyJournal::where('user_id', $user->id)->where('status', 'approved')->count(),
+                'total_prayers' => PrayerLog::where('user_id', $user->id)->count(),
             ];
 
             $data['today_attendance'] = $todayAttendance ? [

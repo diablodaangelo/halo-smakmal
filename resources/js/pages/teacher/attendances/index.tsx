@@ -83,6 +83,7 @@ interface AttendanceItem {
     is_in_radius: boolean;
     radius_limit: number;
     selfie_url: string | null;
+    check_out_selfie_url?: string | null;
 }
 
 interface PermissionItem {
@@ -153,7 +154,13 @@ export default function TeacherAttendancesIndex({
     );
     const [selectedStatus, setSelectedStatus] = useState(filters?.status || '');
     const [selectedDate, setSelectedDate] = useState(filters?.date || '');
-    const [selectedSelfie, setSelectedSelfie] = useState<{ url: string; title: string; time?: string } | null>(null);
+    const [selectedSelfie, setSelectedSelfie] = useState<{
+        title: string;
+        checkInUrl?: string | null;
+        checkInTime?: string | null;
+        checkOutUrl?: string | null;
+        checkOutTime?: string | null;
+    } | null>(null);
     const [selectedPermissionDoc, setSelectedPermissionDoc] = useState<{ url: string; title: string; reason?: string } | null>(null);
     const [verifyingId, setVerifyingId] = useState<number | null>(null);
 
@@ -265,20 +272,17 @@ export default function TeacherAttendancesIndex({
                         </p>
                     </div>
 
-                    {/* Quick Stats Badges */}
-                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto text-xs font-semibold">
-                        <span className="rounded-xl bg-slate-100 px-3 py-2 text-slate-700 border border-slate-200/80">
-                            Total: <strong className="font-bold text-slate-900">{students.length} Siswa</strong>
-                        </span>
-                        <span className="rounded-xl bg-emerald-50 px-3 py-2 text-emerald-700 border border-emerald-200/80">
-                            Hadir Hari Ini: <strong className="font-bold">{stats.today_present}</strong>
-                        </span>
-                        {stats.today_late > 0 && (
-                            <span className="rounded-xl bg-amber-50 px-3 py-2 text-amber-700 border border-amber-200/80">
-                                Terlambat: <strong className="font-bold">{stats.today_late}</strong>
+                    {/* Quick Stats Badges: Hadir & Terlambat per Siswa (Hilang jika Semua Siswa dipilih) */}
+                    {activeStudent && (
+                        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto text-xs font-semibold">
+                            <span className="rounded-xl bg-emerald-50 px-3.5 py-2 text-[#008953] border border-emerald-200/80 shadow-2xs">
+                                Hadir: <strong className="font-bold">{activeStudent.stats?.hadir ?? 0} Kali</strong>
                             </span>
-                        )}
-                    </div>
+                            <span className="rounded-xl bg-amber-50 px-3.5 py-2 text-amber-700 border border-amber-200/80 shadow-2xs">
+                                Terlambat: <strong className="font-bold">{activeStudent.stats?.terlambat ?? 0} Kali</strong>
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* 1.5 Permohonan Izin / Sakit Menunggu Verifikasi */}
@@ -610,19 +614,21 @@ export default function TeacherAttendancesIndex({
                                                     ) : (
                                                         <span className="text-xs text-slate-400">-</span>
                                                     )
-                                                ) : att.selfie_url ? (
+                                                ) : (att.selfie_url || att.check_out_selfie_url) ? (
                                                     <button
                                                         type="button"
                                                         onClick={() => setSelectedSelfie({
-                                                            url: att.selfie_url!,
                                                             title: `${att.user?.name || 'Siswa'} - ${att.date_formatted}`,
-                                                            time: att.check_in_time ? `${att.check_in_time} WIB` : undefined,
+                                                            checkInUrl: att.selfie_url,
+                                                            checkInTime: att.check_in_time ? `${att.check_in_time} WIB` : undefined,
+                                                            checkOutUrl: att.check_out_selfie_url,
+                                                            checkOutTime: att.check_out_time ? `${att.check_out_time} WIB` : undefined,
                                                         })}
                                                         className="group relative size-11 rounded-xl overflow-hidden border border-slate-200 mx-auto block hover:opacity-90 shadow-2xs cursor-pointer"
-                                                        title="Lihat foto selfie"
+                                                        title="Lihat foto selfie presensi"
                                                     >
                                                         <img
-                                                            src={att.selfie_url}
+                                                            src={att.selfie_url || att.check_out_selfie_url!}
                                                             alt="Selfie Presensi"
                                                             className="h-full w-full object-cover"
                                                         />
@@ -729,18 +735,70 @@ export default function TeacherAttendancesIndex({
                 </div>
             </div>
 
-            {/* Selfie Preview Modal */}
+            {/* Selfie Preview Modal (Displays both Masuk & Pulang) */}
             <Dialog open={!!selectedSelfie} onOpenChange={(open) => !open && setSelectedSelfie(null)}>
-                <DialogContent className="sm:max-w-md rounded-2xl p-5">
+                <DialogContent className="sm:max-w-xl rounded-2xl p-5">
                     <DialogHeader>
-                        <DialogTitle className="text-sm font-bold text-slate-900">Foto Selfie Presensi</DialogTitle>
+                        <DialogTitle className="text-base font-bold text-slate-900">Foto Selfie Presensi</DialogTitle>
                         <DialogDescription className="text-xs text-slate-500">
-                            {selectedSelfie?.title} {selectedSelfie?.time ? `• ${selectedSelfie.time}` : ''}
+                            {selectedSelfie?.title} • Dokumentasi foto presensi datang dan pulang
                         </DialogDescription>
                     </DialogHeader>
                     {selectedSelfie && (
-                        <div className="overflow-hidden rounded-xl bg-slate-900 mt-2">
-                            <img src={selectedSelfie.url} alt="Selfie" className="h-auto w-full object-cover max-h-[70vh]" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
+                            {/* 1. Foto Masuk / Datang */}
+                            <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                                        <span className="size-2 rounded-full bg-[#008953]" />
+                                        <span>Foto Datang (Masuk)</span>
+                                    </span>
+                                    <span className="font-mono text-[11px] font-bold text-[#008953] bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
+                                        {selectedSelfie.checkInTime || '-'}
+                                    </span>
+                                </div>
+                                <div className="overflow-hidden rounded-xl bg-slate-900 aspect-4/3 flex items-center justify-center border border-slate-200 shadow-inner">
+                                    {selectedSelfie.checkInUrl ? (
+                                        <img
+                                            src={selectedSelfie.checkInUrl}
+                                            alt="Foto Selfie Masuk"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center gap-1.5 p-4 text-center text-slate-400">
+                                            <Camera className="size-6 text-slate-500" />
+                                            <span className="text-xs font-medium">Tidak ada foto masuk</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 2. Foto Pulang */}
+                            <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                                        <span className="size-2 rounded-full bg-blue-600" />
+                                        <span>Foto Pulang</span>
+                                    </span>
+                                    <span className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200/80 px-2 py-0.5 rounded-md">
+                                        {selectedSelfie.checkOutTime || '-'}
+                                    </span>
+                                </div>
+                                <div className="overflow-hidden rounded-xl bg-slate-900 aspect-4/3 flex items-center justify-center border border-slate-200 shadow-inner">
+                                    {selectedSelfie.checkOutUrl ? (
+                                        <img
+                                            src={selectedSelfie.checkOutUrl}
+                                            alt="Foto Selfie Pulang"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center gap-1.5 p-4 text-center text-slate-400">
+                                            <Camera className="size-6 text-slate-500" />
+                                            <span className="text-xs font-medium">Belum ada foto pulang</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </DialogContent>
