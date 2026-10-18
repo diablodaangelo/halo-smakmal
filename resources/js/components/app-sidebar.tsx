@@ -1,4 +1,5 @@
 import {
+    BarChart3,
     Building2,
     CalendarCheck,
     ChevronsUpDown,
@@ -34,7 +35,7 @@ export function AppSidebar({ isOpen = false, onClose }: AppSidebarProps) {
     const { isCurrentUrl } = useCurrentUrl();
     const logoHref =
         role === 'admin'
-            ? '/admin/students'
+            ? '/admin/dashboard'
             : role === 'guru_pembimbing'
             ? '/teacher/students'
             : dashboard();
@@ -43,6 +44,11 @@ export function AppSidebar({ isOpen = false, onClose }: AppSidebarProps) {
 
     if (role === 'admin') {
         navItems = [
+            {
+                title: 'Dashboard',
+                href: '/admin/dashboard',
+                icon: LayoutGrid,
+            },
             {
                 title: 'Kelola Siswa',
                 href: '/admin/students',
@@ -189,10 +195,10 @@ export function AppSidebar({ isOpen = false, onClose }: AppSidebarProps) {
                                         href={item.href}
                                         prefetch
                                         onClick={() => onClose?.()}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all ${
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all duration-200 ${
                                             active
                                                 ? 'bg-white text-[#008953] font-bold shadow-md shadow-emerald-900/20 translate-x-1'
-                                                : 'text-white/90 hover:bg-white/10 hover:text-white font-medium'
+                                                : 'text-white/90 hover:bg-white/10 hover:text-white hover:translate-x-1 font-medium'
                                         }`}
                                     >
                                         {active ? (

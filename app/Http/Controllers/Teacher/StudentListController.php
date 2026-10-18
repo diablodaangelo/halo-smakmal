@@ -34,6 +34,7 @@ class StudentListController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('nis_nip', 'like', "%{$search}%")
+                    ->orWhere('class_name', 'like', "%{$search}%")
                     ->orWhereHas('company', fn($c) => $c->where('name', 'like', "%{$search}%"));
             });
         }
@@ -54,6 +55,7 @@ class StudentListController extends Controller
                 'slug' => $student->slug,
                 'nickname' => $student->nickname,
                 'nis_nip' => $student->nis_nip,
+                'class_name' => $student->class_name,
                 'phone' => $student->phone,
                 'email' => $student->email,
                 'avatar_url' => $student->avatar_url,

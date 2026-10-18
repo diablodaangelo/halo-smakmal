@@ -91,10 +91,12 @@ class StudentProfileController extends Controller
             'slug' => $student->slug,
             'nickname' => $student->nickname,
             'nis_nip' => $student->nis_nip,
+            'class_name' => $student->class_name,
             'email' => $student->email,
             'phone' => $student->phone,
             'avatar_url' => $student->avatar_url,
             'role' => $student->role,
+            'created_at_formatted' => $student->created_at ? $student->created_at->isoFormat('MMMM Y') : null,
             'company' => $student->company ? [
                 'id' => $student->company->id,
                 'name' => $student->company->name,

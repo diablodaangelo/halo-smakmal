@@ -7,6 +7,7 @@ import {
     CheckCircle2,
     Clock,
     Crosshair,
+    FileText,
     GraduationCap,
     MapPin,
     Moon,
@@ -38,6 +39,7 @@ interface DashboardProps {
         email: string;
         role: 'admin' | 'guru_pembimbing' | 'pembimbing_dudi' | 'siswa';
         nis_nip?: string;
+        class_name?: string | null;
         company?: {
             id: number;
             name: string;
@@ -99,6 +101,13 @@ export default function Dashboard({
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [currentTimeStr, setCurrentTimeStr] = useState<string>('');
     const [greeting, setGreeting] = useState<string>('Selamat Datang');
+
+    // State Pengajuan Izin / Sakit
+    const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+    const [permissionStatus, setPermissionStatus] = useState<'izin' | 'sakit'>('izin');
+    const [permissionReason, setPermissionReason] = useState('');
+    const [permissionDoc, setPermissionDoc] = useState<File | null>(null);
+    const [isSubmittingPermission, setIsSubmittingPermission] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -255,6 +264,32 @@ export default function Dashboard({
         );
     };
 
+    const handlePermissionSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!permissionReason.trim()) return;
+
+        setIsSubmittingPermission(true);
+        router.post(
+            '/student/attendance/permission',
+            {
+                status: permissionStatus,
+                permission_reason: permissionReason,
+                permission_doc: permissionDoc,
+            },
+            {
+                forceFormData: true,
+                onSuccess: () => {
+                    setIsPermissionModalOpen(false);
+                    setPermissionReason('');
+                    setPermissionDoc(null);
+                },
+                onFinish: () => {
+                    setIsSubmittingPermission(false);
+                },
+            }
+        );
+    };
+
     const displayName = user?.nickname || user?.name || 'Siswa';
 
     return (
@@ -271,6 +306,12 @@ export default function Dashboard({
                                 <span>SMK Amaliah 1 & 2 Ciawi</span>
                                 <span className="text-emerald-300/60">•</span>
                                 <span>Siswa PKL</span>
+                                {user?.class_name && (
+                                    <>
+                                        <span className="text-emerald-300/60">•</span>
+                                        <span className="rounded-md bg-white/20 px-2 py-0.5 text-white font-bold">{user.class_name}</span>
+                                    </>
+                                )}
                                 {user?.nis_nip && (
                                     <>
                                         <span className="text-emerald-300/60">•</span>
@@ -347,124 +388,228 @@ export default function Dashboard({
                         </div>
 
                         <div>
-                            <span
-                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                                    stats?.has_checked_out
-                                        ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20'
-                                        : stats?.has_checked_in
-                                        ? stats?.attendance_status === 'hadir'
-                                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20'
-                                            : 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20'
-                                        : 'bg-slate-100 text-slate-600 ring-1 ring-slate-300/60'
-                                }`}
-                            >
+                            {stats?.has_permission ? (
                                 <span
-                                    className={`size-1.5 rounded-full ${
-                                        stats?.has_checked_out
-                                            ? 'bg-blue-600'
-                                            : stats?.has_checked_in
-                                            ? 'bg-emerald-600'
-                                            : 'bg-slate-400'
+                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                                        stats?.permission_is_approved === true
+                                            ? 'bg-emerald-50 text-[#008953] ring-1 ring-emerald-600/20'
+                                            : stats?.permission_is_approved === false
+                                            ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-600/20'
+                                            : 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20'
                                     }`}
-                                />
-                                {stats?.has_checked_out
-                                    ? 'Presensi Selesai'
-                                    : stats?.has_checked_in
-                                    ? `Masuk: ${stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}`
-                                    : 'Belum Presensi'}
-                            </span>
+                                >
+                                    <span
+                                        className={`size-1.5 rounded-full ${
+                                            stats?.permission_is_approved === true
+                                                ? 'bg-[#008953]'
+                                                : stats?.permission_is_approved === false
+                                                ? 'bg-rose-600'
+                                                : 'bg-amber-600'
+                                        }`}
+                                    />
+                                    {stats?.permission_is_approved === true
+                                        ? `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} Disetujui Guru`
+                                        : stats?.permission_is_approved === false
+                                        ? `Izin Ditolak (Alpa)`
+                                        : `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} (Menunggu Konfirmasi)`}
+                                </span>
+                            ) : (
+                                <span
+                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                                        stats?.has_checked_out
+                                            ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20'
+                                            : stats?.has_checked_in
+                                            ? stats?.attendance_status === 'hadir'
+                                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20'
+                                                : 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20'
+                                            : 'bg-slate-100 text-slate-600 ring-1 ring-slate-300/60'
+                                    }`}
+                                >
+                                    <span
+                                        className={`size-1.5 rounded-full ${
+                                            stats?.has_checked_out
+                                                ? 'bg-blue-600'
+                                                : stats?.has_checked_in
+                                                ? 'bg-emerald-600'
+                                                : 'bg-slate-400'
+                                        }`}
+                                    />
+                                    {stats?.has_checked_out
+                                        ? 'Presensi Selesai'
+                                        : stats?.has_checked_in
+                                        ? `Masuk: ${stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}`
+                                        : 'Belum Presensi'}
+                                </span>
+                            )}
                         </div>
                     </div>
 
-                    {/* Check-In & Check-Out 2-Columns */}
-                    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 pt-4">
-                        {/* Check-In Block */}
-                        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-                            <div>
-                                <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                                    <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                                        <Sun className="size-4 text-amber-500" />
-                                        <span>Jam Masuk</span>
+                    {/* Jika Siswa Sedang Mengajukan Izin / Sakit */}
+                    {stats?.has_permission ? (
+                        <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/50 p-4 sm:p-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-amber-200/60 pb-3">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="flex size-9 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold shrink-0">
+                                        <FileText className="size-5" />
                                     </div>
-                                    <span>Batas: {user?.company?.check_in_end ? user.company.check_in_end.substring(0, 5) : '08:00'} WIB</span>
-                                </div>
-
-                                <div className="mt-2.5 flex items-baseline justify-between">
-                                    <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900">
-                                        {stats?.check_in_time ? `${stats.check_in_time}` : '-- : --'}
-                                        <span className="text-xs font-sans font-medium text-slate-400 ml-1.5">WIB</span>
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-900">
+                                            Permohonan Tidak Masuk:{' '}
+                                            <span className="uppercase text-amber-800 font-extrabold">
+                                                {stats.permission_status}
+                                            </span>
+                                        </div>
+                                        <div className="text-[11px] text-slate-500">
+                                            {stats.permission_is_approved === true
+                                                ? 'Permohonan telah diverifikasi dan disetujui Guru Pembimbing.'
+                                                : stats.permission_is_approved === false
+                                                ? 'Permohonan tidak disetujui oleh Guru Pembimbing.'
+                                                : 'Menunggu konfirmasi verifikasi dari Guru Pembimbing.'}
+                                        </div>
                                     </div>
-                                    {stats?.has_checked_in && (
-                                        <span className={`text-xs font-bold ${stats?.attendance_status === 'hadir' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                            {stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}
-                                        </span>
-                                    )}
                                 </div>
+                                <span
+                                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold self-start sm:self-auto ${
+                                        stats.permission_is_approved === true
+                                            ? 'bg-emerald-100 text-[#008953]'
+                                            : stats.permission_is_approved === false
+                                            ? 'bg-rose-100 text-rose-700'
+                                            : 'bg-amber-100 text-amber-800'
+                                    }`}
+                                >
+                                    {stats.permission_is_approved === true
+                                        ? 'Disetujui'
+                                        : stats.permission_is_approved === false
+                                        ? 'Ditolak'
+                                        : 'Menunggu Persetujuan'}
+                                </span>
                             </div>
 
-                            <div className="mt-4">
-                                {!stats?.has_checked_in ? (
-                                    <Button
-                                        onClick={() => openAttendanceModal('check_in')}
-                                        className="w-full gap-2 bg-[#008953] hover:bg-[#007346] text-white font-semibold text-xs h-9 sm:h-10 rounded-xl shadow-xs"
-                                    >
-                                        <Camera className="size-4" />
-                                        <span>Presensi Masuk</span>
-                                    </Button>
-                                ) : (
-                                    <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-100/60 py-2 text-xs font-semibold text-emerald-800">
-                                        <CheckCircle2 className="size-4 text-emerald-600" />
-                                        <span>Check-In Tercatat ({stats.check_in_time} WIB)</span>
+                            <div className="mt-3 text-xs text-slate-700 space-y-2">
+                                <div>
+                                    <span className="font-bold text-slate-900">Keterangan / Alasan:</span>
+                                    <p className="mt-1 text-slate-600 bg-white rounded-lg p-2.5 border border-amber-100/80">
+                                        {stats.permission_reason || '-'}
+                                    </p>
+                                </div>
+                                {stats.permission_doc_url && (
+                                    <div className="pt-1">
+                                        <a
+                                            href={stats.permission_doc_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
+                                        >
+                                            <FileText className="size-3.5" />
+                                            <span>Lihat Dokumen / Surat Keterangan yang Diunggah</span>
+                                        </a>
                                     </div>
                                 )}
                             </div>
                         </div>
-
-                        {/* Check-Out Block */}
-                        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-                            <div>
-                                <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                                    <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                                        <Moon className="size-4 text-indigo-500" />
-                                        <span>Jam Pulang</span>
+                    ) : (
+                        /* Check-In & Check-Out 2-Columns */
+                        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 pt-4">
+                            {/* Check-In Block */}
+                            <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+                                <div>
+                                    <div className="flex items-center justify-between text-xs font-medium text-slate-500">
+                                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                                            <Sun className="size-4 text-amber-500" />
+                                            <span>Jam Masuk</span>
+                                        </div>
+                                        <span>Batas: {user?.company?.check_in_end ? user.company.check_in_end.substring(0, 5) : '08:00'} WIB</span>
                                     </div>
-                                    <span>Mulai: {user?.company?.check_out_start ? user.company.check_out_start.substring(0, 5) : '17:00'} WIB</span>
+
+                                    <div className="mt-2.5 flex items-baseline justify-between">
+                                        <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900">
+                                            {stats?.check_in_time ? `${stats.check_in_time}` : '-- : --'}
+                                            <span className="text-xs font-sans font-medium text-slate-400 ml-1.5">WIB</span>
+                                        </div>
+                                        {stats?.has_checked_in && (
+                                            <span className={`text-xs font-bold ${stats?.attendance_status === 'hadir' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                {stats?.attendance_status === 'hadir' ? 'Tepat Waktu' : 'Terlambat'}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
-                                <div className="mt-2.5 flex items-baseline justify-between">
-                                    <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900">
-                                        {stats?.check_out_time ? `${stats.check_out_time}` : '-- : --'}
-                                        <span className="text-xs font-sans font-medium text-slate-400 ml-1.5">WIB</span>
-                                    </div>
-                                    {stats?.has_checked_out && (
-                                        <span className="text-xs font-bold text-blue-600">Selesai</span>
+                                <div className="mt-4">
+                                    {!stats?.has_checked_in ? (
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                onClick={() => openAttendanceModal('check_in')}
+                                                className="flex-1 gap-2 bg-[#008953] hover:bg-[#007346] text-white font-semibold text-xs h-9 sm:h-10 rounded-xl shadow-xs cursor-pointer"
+                                            >
+                                                <Camera className="size-4" />
+                                                <span>Presensi Masuk</span>
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setIsPermissionModalOpen(true)}
+                                                className="gap-1.5 border-amber-200 bg-amber-50/80 text-amber-800 hover:bg-amber-100 hover:text-amber-900 font-bold text-xs h-9 sm:h-10 px-3.5 rounded-xl shadow-xs shrink-0 cursor-pointer"
+                                                title="Ajukan permohonan izin atau sakit"
+                                            >
+                                                <FileText className="size-4 text-amber-600" />
+                                                <span>Izin / Sakit</span>
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-100/60 py-2 text-xs font-semibold text-emerald-800">
+                                            <CheckCircle2 className="size-4 text-emerald-600" />
+                                            <span>Check-In Tercatat ({stats.check_in_time} WIB)</span>
+                                        </div>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="mt-4">
-                                {stats?.has_checked_in && !stats?.has_checked_out ? (
-                                    <Button
-                                        onClick={() => openAttendanceModal('check_out')}
-                                        className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 sm:h-10 rounded-xl shadow-xs"
-                                    >
-                                        <Camera className="size-4" />
-                                        <span>Presensi Pulang</span>
-                                    </Button>
-                                ) : stats?.has_checked_out ? (
-                                    <div className="flex items-center justify-center gap-1.5 rounded-xl bg-blue-100/60 py-2 text-xs font-semibold text-blue-800">
-                                        <CheckCircle2 className="size-4 text-blue-600" />
-                                        <span>Check-Out Selesai ({stats.check_out_time} WIB)</span>
+                            {/* Check-Out Block */}
+                            <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+                                <div>
+                                    <div className="flex items-center justify-between text-xs font-medium text-slate-500">
+                                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                                            <Moon className="size-4 text-indigo-500" />
+                                            <span>Jam Pulang</span>
+                                        </div>
+                                        <span>Mulai: {user?.company?.check_out_start ? user.company.check_out_start.substring(0, 5) : '17:00'} WIB</span>
                                     </div>
-                                ) : (
-                                    <div className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-100/80 py-2 text-xs font-medium text-slate-400">
-                                        <Clock className="size-4 text-slate-400" />
-                                        <span>Menunggu Check-In</span>
+
+                                    <div className="mt-2.5 flex items-baseline justify-between">
+                                        <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-900">
+                                            {stats?.check_out_time ? `${stats.check_out_time}` : '-- : --'}
+                                            <span className="text-xs font-sans font-medium text-slate-400 ml-1.5">WIB</span>
+                                        </div>
+                                        {stats?.has_checked_out && (
+                                            <span className="text-xs font-bold text-blue-600">Selesai</span>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+
+                                <div className="mt-4">
+                                    {stats?.has_checked_in && !stats?.has_checked_out ? (
+                                        <Button
+                                            onClick={() => openAttendanceModal('check_out')}
+                                            className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 sm:h-10 rounded-xl shadow-xs"
+                                        >
+                                            <Camera className="size-4" />
+                                            <span>Presensi Pulang</span>
+                                        </Button>
+                                    ) : stats?.has_checked_out ? (
+                                        <div className="flex items-center justify-center gap-1.5 rounded-xl bg-blue-100/60 py-2 text-xs font-semibold text-blue-800">
+                                            <CheckCircle2 className="size-4 text-blue-600" />
+                                            <span>Check-Out Selesai ({stats.check_out_time} WIB)</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-100/80 py-2 text-xs font-medium text-slate-400">
+                                            <Clock className="size-4 text-slate-400" />
+                                            <span>Menunggu Check-In</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Geofence Footer Note */}
                     {user?.company && (
@@ -658,6 +803,99 @@ export default function Dashboard({
                                 className="bg-[#008953] hover:bg-[#007346] text-white font-semibold"
                             >
                                 Kirim Presensi
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Permission Request Modal Dialog (Izin / Sakit) */}
+            <Dialog open={isPermissionModalOpen} onOpenChange={setIsPermissionModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <FileText className="size-5 text-amber-600" />
+                            <span>Ajukan Izin Tidak Masuk PKL</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500">
+                            Permohonan izin atau sakit akan langsung dikirimkan ke Guru Pembimbing Anda untuk diverifikasi.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handlePermissionSubmit} className="space-y-4 pt-2">
+                        {/* Jenis Permohonan */}
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold text-slate-700">Jenis Permohonan *</Label>
+                            <div className="grid grid-cols-2 gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setPermissionStatus('izin')}
+                                    className={`p-3 rounded-xl border text-xs font-bold text-left transition cursor-pointer flex items-center justify-between ${
+                                        permissionStatus === 'izin'
+                                            ? 'border-[#008953] bg-emerald-50 text-[#008953] ring-1 ring-[#008953]'
+                                            : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                                    }`}
+                                >
+                                    <span>Izin Keperluan</span>
+                                    {permissionStatus === 'izin' && <CheckCircle2 className="size-4 text-[#008953]" />}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPermissionStatus('sakit')}
+                                    className={`p-3 rounded-xl border text-xs font-bold text-left transition cursor-pointer flex items-center justify-between ${
+                                        permissionStatus === 'sakit'
+                                            ? 'border-purple-600 bg-purple-50 text-purple-700 ring-1 ring-purple-600'
+                                            : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                                    }`}
+                                >
+                                    <span>Sakit</span>
+                                    {permissionStatus === 'sakit' && <CheckCircle2 className="size-4 text-purple-600" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Alasan / Keterangan */}
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold text-slate-700">Alasan / Keterangan *</Label>
+                            <textarea
+                                value={permissionReason}
+                                onChange={(e) => setPermissionReason(e.target.value)}
+                                required
+                                rows={3}
+                                placeholder="Contoh: Mengalami demam dan flu, istirahat atas anjuran dokter..."
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition resize-none"
+                            />
+                        </div>
+
+                        {/* Lampiran Dokumen */}
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold text-slate-700">
+                                Foto Surat Dokter / Surat Izin Ortu <span className="font-normal text-slate-400">(Opsional)</span>
+                            </Label>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,application/pdf"
+                                onChange={(e) => setPermissionDoc(e.target.files?.[0] || null)}
+                                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-[#008953] hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50/50"
+                            />
+                            <p className="text-[10px] text-slate-400">Format yang didukung: JPG, PNG, atau PDF (maksimal 5MB)</p>
+                        </div>
+
+                        <DialogFooter className="pt-2 gap-2 sm:gap-0">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsPermissionModalOpen(false)}
+                                disabled={isSubmittingPermission}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isSubmittingPermission || !permissionReason.trim()}
+                                className="bg-[#008953] hover:bg-[#007346] text-white font-bold"
+                            >
+                                {isSubmittingPermission ? 'Mengirim...' : 'Kirim Permohonan Izin'}
                             </Button>
                         </DialogFooter>
                     </form>

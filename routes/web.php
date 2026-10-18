@@ -16,6 +16,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin Group Routes
     Route::middleware(['check.role:admin'])->prefix('admin')->name('admin.')->group(function () {
+        // Dashboard Admin
+        Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::redirect('statistics', '/admin/dashboard');
+
         // Master Data Perusahaan / DUDI
         Route::resource('companies', \App\Http\Controllers\Admin\CompanyController::class)->except(['create', 'edit', 'show']);
 
@@ -32,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('attendances', [\App\Http\Controllers\Student\AttendanceController::class, 'index'])->name('attendances.index');
         Route::post('attendance/check-in', [\App\Http\Controllers\Student\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
         Route::post('attendance/check-out', [\App\Http\Controllers\Student\AttendanceController::class, 'checkOut'])->name('attendance.check-out');
+        Route::post('attendance/permission', [\App\Http\Controllers\Student\AttendanceController::class, 'requestPermission'])->name('attendance.permission');
 
         // Jurnal Harian PKL
         Route::get('journals', [\App\Http\Controllers\Student\JournalController::class, 'index'])->name('journals.index');
@@ -48,8 +53,9 @@ Route::middleware(['auth'])->group(function () {
         // Daftar Siswa Binaan
         Route::get('students', [\App\Http\Controllers\Teacher\StudentListController::class, 'index'])->name('students.index');
 
-        // Presensi Siswa Binaan
+        // Presensi Siswa Binaan & Verifikasi Izin
         Route::get('attendances', [\App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendances.index');
+        Route::post('attendances/{attendance}/verify-permission', [\App\Http\Controllers\Teacher\AttendanceController::class, 'verifyPermission'])->name('attendances.verify-permission');
 
         // Review Jurnal Siswa
         Route::get('journals', [\App\Http\Controllers\Teacher\JournalReviewController::class, 'index'])->name('journals.index');

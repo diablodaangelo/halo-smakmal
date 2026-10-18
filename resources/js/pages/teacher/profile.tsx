@@ -1,23 +1,22 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
     Building2,
     Calendar,
-    CheckCircle2,
-    Clock,
+    Copy,
+    Eye,
     GraduationCap,
     Mail,
     MapPin,
     MessageCircle,
     Phone,
+    Search,
     ShieldCheck,
-    UserCheck,
     Users,
 } from 'lucide-react';
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface GuidedStudent {
     id: number;
@@ -25,6 +24,7 @@ interface GuidedStudent {
     slug?: string;
     nickname?: string | null;
     nis_nip?: string | null;
+    class_name?: string | null;
     phone?: string | null;
     avatar_url?: string | null;
     company?: {
@@ -61,6 +61,10 @@ interface TeacherProfileProps {
 }
 
 export default function TeacherProfile({ teacher }: TeacherProfileProps) {
+    const [activeTab, setActiveTab] = useState<'students' | 'companies'>('students');
+    const [searchStudent, setSearchStudent] = useState('');
+    const [copied, setCopied] = useState(false);
+
     const formatWhatsAppUrl = (phone?: string | null) => {
         if (!phone) return null;
         let clean = phone.replace(/[^0-9]/g, '');
@@ -74,290 +78,457 @@ export default function TeacherProfile({ teacher }: TeacherProfileProps) {
 
     const waUrl = formatWhatsAppUrl(teacher.phone);
 
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleBack = () => {
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+            window.history.back();
+        } else {
+            router.visit('/dashboard');
+        }
+    };
+
+    // Extract unique companies from guided students
+    const uniqueCompanies = useMemo(() => {
+        const map = new Map<number, { id: number; name: string; address?: string; studentCount: number }>();
+        teacher.guided_students.forEach((s) => {
+            if (s.company?.id) {
+                const existing = map.get(s.company.id);
+                if (existing) {
+                    existing.studentCount += 1;
+                } else {
+                    map.set(s.company.id, {
+                        id: s.company.id,
+                        name: s.company.name,
+                        address: s.company.address,
+                        studentCount: 1,
+                    });
+                }
+            }
+        });
+        return Array.from(map.values());
+    }, [teacher.guided_students]);
+
+    // Filter students by search
+    const filteredStudents = useMemo(() => {
+        if (!searchStudent.trim()) return teacher.guided_students;
+        const q = searchStudent.toLowerCase();
+        return teacher.guided_students.filter(
+            (s) =>
+                s.name.toLowerCase().includes(q) ||
+                (s.class_name && s.class_name.toLowerCase().includes(q)) ||
+                (s.company && s.company.name.toLowerCase().includes(q)) ||
+                (s.nis_nip && s.nis_nip.includes(q))
+        );
+    }, [teacher.guided_students, searchStudent]);
+
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .filter(Boolean)
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase();
+    };
+
     return (
         <>
             <Head title={`Profil Guru - ${teacher.name}`} />
 
-            <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full">
                 {/* Back Button */}
                 <div className="flex items-center justify-between">
                     <Button
-                        asChild
+                        type="button"
                         variant="ghost"
                         size="sm"
-                        className="gap-2 text-xs font-semibold text-neutral-600 hover:text-neutral-900"
+                        onClick={handleBack}
+                        className="gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 -ml-2 rounded-xl cursor-pointer"
                     >
-                        <Link href="/dashboard">
-                            <ArrowLeft className="size-4" />
-                            <span>Kembali ke Dashboard</span>
-                        </Link>
+                        <ArrowLeft className="size-4" />
+                        <span>Kembali</span>
                     </Button>
                 </div>
 
-                {/* Hero Profile Card */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#008953] via-[#007346] to-[#0b5134] p-6 text-white shadow-lg sm:p-8">
-                    {/* Background decorations */}
-                    <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full bg-white/5 blur-2xl" />
-                    <div className="pointer-events-none absolute -bottom-12 right-48 h-48 w-48 rounded-full bg-emerald-400/10 blur-xl" />
+                {/* Social Media Style Profile Header Card */}
+                <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
+                    {/* Cover Banner */}
+                    <div className="h-36 sm:h-48 md:h-56 bg-gradient-to-r from-[#008953] via-[#007346] to-[#064e3b] relative overflow-hidden">
+                        {/* Abstract Background Accents */}
+                        <div className="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+                        <div className="absolute left-1/3 -bottom-10 w-72 h-72 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
+                        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
 
-                    <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                        {/* Verified Pill in Top Corner */}
+                        <div className="absolute top-4 right-4 sm:top-5 sm:right-6 flex items-center gap-1.5 bg-black/25 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/15">
+                            <ShieldCheck className="size-3.5 text-emerald-300" />
+                            <span>Guru Terverifikasi</span>
+                        </div>
+                    </div>
+
+                    {/* Profile Information & Actions Row */}
+                    <div className="px-5 sm:px-8 pb-6 pt-0 relative">
+                        {/* Avatar & Quick Action Buttons */}
+                        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-12 sm:-mt-16 mb-4">
                             {/* Avatar */}
-                            <div className="relative flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-2xl font-bold text-white shadow-inner backdrop-blur-md border border-white/20">
+                            <div className="relative size-24 sm:size-28 rounded-3xl border-4 border-white bg-[#008953] text-white shadow-md flex items-center justify-center font-bold text-2xl sm:text-3xl shrink-0 overflow-hidden ring-1 ring-slate-100">
                                 {teacher.avatar_url ? (
                                     <img
                                         src={teacher.avatar_url}
                                         alt={teacher.name}
-                                        className="h-full w-full rounded-2xl object-cover"
+                                        className="h-full w-full object-cover"
                                     />
                                 ) : (
-                                    <span>
-                                        {teacher.name
-                                            .split(' ')
-                                            .map((n) => n[0])
-                                            .slice(0, 2)
-                                            .join('')
-                                            .toUpperCase()}
-                                    </span>
+                                    <span>{getInitials(teacher.name)}</span>
                                 )}
-                                <div className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-[#008953] border-2 border-white text-white">
-                                    <GraduationCap className="size-3.5" />
+                                <div className="absolute bottom-1 right-1 bg-white p-1 rounded-full shadow-xs">
+                                    <GraduationCap className="size-3.5 text-[#008953]" />
                                 </div>
                             </div>
 
-                            {/* Name & Details */}
-                            <div className="space-y-1.5">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-0.5 text-xs font-semibold backdrop-blur-md">
-                                        <GraduationCap className="size-3.5" />
-                                        Guru Pembimbing PKL
-                                    </span>
-                                    {teacher.nis_nip && (
-                                        <span className="inline-flex items-center rounded-full bg-black/20 px-2.5 py-0.5 text-xs font-mono font-medium backdrop-blur-md">
-                                            NIP: {teacher.nis_nip}
-                                        </span>
-                                    )}
-                                </div>
+                            {/* Contact & Share Buttons */}
+                            <div className="flex flex-wrap items-center gap-2">
+                                {waUrl && (
+                                    <a
+                                        href={waUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 h-9 sm:h-10 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] active:scale-[0.98] text-white text-xs sm:text-sm font-bold shadow-xs transition"
+                                    >
+                                        <MessageCircle className="size-4 shrink-0" />
+                                        <span>WhatsApp</span>
+                                    </a>
+                                )}
 
-                                <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                                {teacher.email && (
+                                    <a
+                                        href={`mailto:${teacher.email}`}
+                                        className="inline-flex items-center gap-2 h-9 sm:h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-700 text-xs sm:text-sm font-semibold shadow-2xs transition"
+                                    >
+                                        <Mail className="size-4 text-slate-500 shrink-0" />
+                                        <span>Email</span>
+                                    </a>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={handleCopyLink}
+                                    className="inline-flex items-center justify-center size-9 sm:size-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition shadow-2xs"
+                                    title="Salin Tautan Profil"
+                                >
+                                    <Copy className="size-4" />
+                                </button>
+                                {copied && (
+                                    <span className="text-[11px] font-semibold text-emerald-600">
+                                        Tersalin!
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Name & Title */}
+                        <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                                     {teacher.name}
                                 </h1>
+                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-[#008953] border border-emerald-200/80">
+                                    <GraduationCap className="size-3" />
+                                    Pembimbing PKL
+                                </span>
+                            </div>
 
-                                <p className="text-sm text-emerald-100/90 flex items-center gap-2">
-                                    <Building2 className="size-4 shrink-0 text-emerald-300" />
-                                    <span>SMK Amaliah 1 & 2 Ciawi, Bogor</span>
+                            {teacher.nis_nip && (
+                                <p className="text-xs font-mono font-medium text-slate-500">
+                                    NIP: {teacher.nis_nip}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Bio & Metadata */}
+                        <div className="mt-3.5 flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-slate-500 font-medium">
+                            <div className="flex items-center gap-1.5">
+                                <Building2 className="size-3.5 text-slate-400 shrink-0" />
+                                <span>SMK Amaliah 1 & 2 Ciawi, Bogor</span>
+                            </div>
+
+                            {teacher.created_at_formatted && (
+                                <div className="flex items-center gap-1.5">
+                                    <Calendar className="size-3.5 text-slate-400 shrink-0" />
+                                    <span>Aktif sejak {teacher.created_at_formatted}</span>
+                                </div>
+                            )}
+
+                            {teacher.phone && (
+                                <div className="flex items-center gap-1.5">
+                                    <Phone className="size-3.5 text-slate-400 shrink-0" />
+                                    <span>{teacher.phone}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Medsos Follower-Style Stats */}
+                        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-5 text-sm">
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('students')}
+                                className="group flex items-baseline gap-1.5 cursor-pointer text-left"
+                            >
+                                <span className="font-extrabold text-slate-900 group-hover:text-[#008953] transition">
+                                    {teacher.stats.total_students}
+                                </span>
+                                <span className="text-xs text-slate-500 font-medium">
+                                    Siswa Binaan
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('companies')}
+                                className="group flex items-baseline gap-1.5 cursor-pointer text-left"
+                            >
+                                <span className="font-extrabold text-slate-900 group-hover:text-[#008953] transition">
+                                    {teacher.stats.total_companies}
+                                </span>
+                                <span className="text-xs text-slate-500 font-medium">
+                                    Mitra DUDI Terkait
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Profile Tabs Navigation */}
+                <div className="flex items-center gap-2 border-b border-slate-200/80 bg-white px-3 py-1.5 rounded-2xl shadow-2xs">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('students')}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer ${
+                            activeTab === 'students'
+                                ? 'bg-emerald-50 text-[#008953]'
+                                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                        }`}
+                    >
+                        <Users className="size-4" />
+                        <span>Siswa Binaan</span>
+                        <span
+                            className={`px-2 py-0.2 rounded-full text-[11px] font-extrabold ${
+                                activeTab === 'students'
+                                    ? 'bg-[#008953] text-white'
+                                    : 'bg-slate-100 text-slate-600'
+                            }`}
+                        >
+                            {teacher.guided_students.length}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('companies')}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer ${
+                            activeTab === 'companies'
+                                ? 'bg-emerald-50 text-[#008953]'
+                                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                        }`}
+                    >
+                        <Building2 className="size-4" />
+                        <span>Mitra DUDI</span>
+                        <span
+                            className={`px-2 py-0.2 rounded-full text-[11px] font-extrabold ${
+                                activeTab === 'companies'
+                                    ? 'bg-[#008953] text-white'
+                                    : 'bg-slate-100 text-slate-600'
+                            }`}
+                        >
+                            {uniqueCompanies.length}
+                        </span>
+                    </button>
+
+                </div>
+
+                {/* Tab Content: 1. Siswa Binaan (List Style) */}
+                {activeTab === 'students' && (
+                    <div className="space-y-3">
+                        {/* Search Filter Bar */}
+                        <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                                <Input
+                                    value={searchStudent}
+                                    onChange={(e) => setSearchStudent(e.target.value)}
+                                    placeholder="Cari siswa binaan berdasarkan nama, kelas, atau DUDI..."
+                                    className="pl-9 h-9 text-xs sm:text-sm rounded-xl border-slate-200 bg-slate-50/50"
+                                />
+                            </div>
+                            {searchStudent && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setSearchStudent('')}
+                                    className="h-9 text-xs rounded-xl text-slate-500"
+                                >
+                                    Reset
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* Students List */}
+                        {filteredStudents.length === 0 ? (
+                            <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center">
+                                <Users className="size-10 text-slate-300 mx-auto mb-2" />
+                                <p className="text-sm font-bold text-slate-700">
+                                    Tidak ada siswa yang sesuai
+                                </p>
+                                <p className="text-xs text-slate-400 mt-0.5">
+                                    Coba ubah kata kunci pencarian siswa binaan.
                                 </p>
                             </div>
-                        </div>
-
-                        {/* Quick Contact Actions */}
-                        <div className="flex flex-wrap items-center gap-2.5 pt-2 sm:pt-0">
-                            {waUrl && (
-                                <Button
-                                    asChild
-                                    className="gap-2 bg-white text-[#008953] hover:bg-emerald-50 font-semibold shadow-sm text-xs h-10 px-4"
-                                >
-                                    <a href={waUrl} target="_blank" rel="noopener noreferrer">
-                                        <MessageCircle className="size-4 text-emerald-600" />
-                                        <span>Hubungi WhatsApp</span>
-                                    </a>
-                                </Button>
-                            )}
-
-                            {teacher.email && (
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    className="gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white text-xs h-10 px-4 backdrop-blur-md"
-                                >
-                                    <a href={`mailto:${teacher.email}`}>
-                                        <Mail className="size-4" />
-                                        <span>Kirim Email</span>
-                                    </a>
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* 3 Metric Summary Cards */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    {/* Total Siswa Binaan */}
-                    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-xs">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
-                                Total Siswa Binaan
-                            </span>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-[#008953]">
-                                <Users className="size-4" />
-                            </div>
-                        </div>
-                        <div className="mt-3 flex items-baseline gap-2">
-                            <span className="text-3xl font-extrabold text-neutral-900">
-                                {teacher.stats.total_students}
-                            </span>
-                            <span className="text-xs font-semibold text-neutral-500">Siswa Aktif</span>
-                        </div>
-                        <p className="mt-2 text-xs text-neutral-500">Dibimbing secara langsung</p>
-                    </div>
-
-                    {/* Tempat PKL / DUDI Mitra */}
-                    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-xs">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
-                                Mitra DUDI Terkait
-                            </span>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                                <Building2 className="size-4" />
-                            </div>
-                        </div>
-                        <div className="mt-3 flex items-baseline gap-2">
-                            <span className="text-3xl font-extrabold text-neutral-900">
-                                {teacher.stats.total_companies}
-                            </span>
-                            <span className="text-xs font-semibold text-neutral-500">Instansi</span>
-                        </div>
-                        <p className="mt-2 text-xs text-neutral-500">Lokasi penempatan siswa binaan</p>
-                    </div>
-
-                    {/* Presensi Hari Ini */}
-                    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-xs">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
-                                Kehadiran Hari Ini
-                            </span>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
-                                <CheckCircle2 className="size-4" />
-                            </div>
-                        </div>
-                        <div className="mt-3 flex items-baseline gap-2">
-                            <span className="text-3xl font-extrabold text-neutral-900">
-                                {teacher.stats.today_present} / {teacher.stats.total_students}
-                            </span>
-                            <span className="text-xs font-semibold text-purple-600">
-                                ({teacher.stats.total_students > 0 ? Math.round((teacher.stats.today_present / teacher.stats.total_students) * 100) : 0}%)
-                            </span>
-                        </div>
-                        <p className="mt-2 text-xs text-neutral-500">Siswa telah presensi masuk</p>
-                    </div>
-                </div>
-
-                {/* Daftar Siswa Binaan */}
-                <Card className="border border-neutral-200/80 shadow-sm bg-white overflow-hidden">
-                    <CardHeader className="border-b border-neutral-100 bg-neutral-50/50 px-6 py-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <UserCheck className="size-4 text-[#008953]" />
-                                <CardTitle className="text-sm font-bold text-neutral-900">
-                                    Daftar Siswa Binaan ({teacher.guided_students.length})
-                                </CardTitle>
-                            </div>
-                            <span className="text-xs text-neutral-500">Monitoring Lapangan</span>
-                        </div>
-                    </CardHeader>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                            <thead>
-                                <tr className="border-b border-neutral-100 bg-neutral-50/30 text-neutral-500 font-semibold">
-                                    <th className="px-6 py-3">Siswa</th>
-                                    <th className="px-6 py-3">NIS</th>
-                                    <th className="px-6 py-3">Tempat PKL / DUDI</th>
-                                    <th className="px-6 py-3">Kehadiran Hari Ini</th>
-                                    <th className="px-6 py-3 text-right">Kontak</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-neutral-100 text-neutral-700">
-                                {teacher.guided_students.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-neutral-400">
-                                            Belum ada siswa yang ditugaskan ke guru pembimbing ini.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    teacher.guided_students.map((student) => {
-                                        const studentWa = formatWhatsAppUrl(student.phone);
-                                        return (
-                                            <tr key={student.id} className="hover:bg-neutral-50/70 transition">
-                                                <td className="px-6 py-3.5 font-medium text-neutral-900">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="flex size-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] border border-emerald-200">
-                                                            {student.name
-                                                                .split(' ')
-                                                                .map((n) => n[0])
-                                                                .slice(0, 2)
-                                                                .join('')
-                                                                .toUpperCase()}
-                                                        </div>
-                                                        <div>
-                                                            <Link
-                                                                href={`/students/${student.slug || student.id}`}
-                                                                className="font-semibold text-neutral-900 hover:text-[#008953] transition-colors"
-                                                            >
-                                                                {student.name}
-                                                            </Link>
-                                                            {student.nickname && (
-                                                                <div className="text-[11px] text-neutral-400">({student.nickname})</div>
-                                                            )}
-                                                        </div>
+                        ) : (
+                            <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden divide-y divide-slate-100 shadow-2xs">
+                                {filteredStudents.map((student) => {
+                                    const studentWa = formatWhatsAppUrl(student.phone);
+                                    return (
+                                        <div
+                                            key={student.id}
+                                            className="flex items-center justify-between p-3.5 sm:px-5 sm:py-3.5 hover:bg-slate-50/70 transition-colors gap-3"
+                                        >
+                                            {/* Left: Avatar & Info */}
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-[#008953] font-bold text-xs ring-1 ring-emerald-600/20">
+                                                    {student.avatar_url ? (
+                                                        <img
+                                                            src={student.avatar_url}
+                                                            alt={student.name}
+                                                            className="h-full w-full object-cover rounded-xl"
+                                                        />
+                                                    ) : (
+                                                        <span>{getInitials(student.name)}</span>
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <Link
+                                                            href={`/students/${student.slug || student.id}`}
+                                                            className="font-bold text-sm text-slate-900 hover:text-[#008953] transition truncate"
+                                                        >
+                                                            {student.name}
+                                                        </Link>
+                                                        {student.class_name && (
+                                                            <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-[#008953] border border-emerald-200">
+                                                                {student.class_name}
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-3.5 font-mono text-neutral-600">
-                                                    {student.nis_nip || '-'}
-                                                </td>
-                                                <td className="px-6 py-3.5">
-                                                    {student.company ? (
-                                                        <div className="flex items-center gap-1.5 text-neutral-800">
-                                                            <Building2 className="size-3.5 text-neutral-400 shrink-0" />
-                                                            <span className="font-medium">{student.company.name}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-neutral-400 italic">Belum Ditempatkan</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-3.5">
-                                                    {student.today_attendance ? (
-                                                        <span
-                                                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                                                                student.today_attendance.status === 'hadir'
-                                                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
-                                                            }`}
-                                                        >
-                                                            <span className="size-1.5 rounded-full bg-current" />
-                                                            {student.today_attendance.status === 'hadir' ? 'Hadir' : 'Terlambat'} ({student.today_attendance.check_in_time})
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 text-neutral-500 px-2.5 py-0.5 text-[11px] font-medium border border-neutral-200">
-                                                            Belum Presensi
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-3.5 text-right">
-                                                    {studentWa ? (
-                                                        <Button
-                                                            asChild
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="h-7 gap-1 px-2.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 border-emerald-200"
-                                                        >
-                                                            <a href={studentWa} target="_blank" rel="noopener noreferrer">
-                                                                <MessageCircle className="size-3 text-emerald-600" />
-                                                                <span>WA</span>
-                                                            </a>
-                                                        </Button>
-                                                    ) : (
-                                                        <span className="text-neutral-400 text-[11px]">-</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5 flex-wrap">
+                                                        {student.nis_nip && (
+                                                            <span className="font-mono text-slate-400">
+                                                                NIS: {student.nis_nip}
+                                                            </span>
+                                                        )}
+                                                        {student.nis_nip && student.company && (
+                                                            <span className="text-slate-300">•</span>
+                                                        )}
+                                                        {student.company ? (
+                                                            <span className="text-slate-600 font-medium flex items-center gap-1 truncate max-w-[220px]">
+                                                                <Building2 className="size-3 text-slate-400 shrink-0" />
+                                                                <span className="truncate">{student.company.name}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="italic text-slate-400">
+                                                                Belum Ditempatkan
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Right: Action Buttons */}
+                                            <div className="flex items-center gap-1.5 shrink-0">
+
+                                                {studentWa && (
+                                                    <a
+                                                        href={studentWa}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                                        title="Chat WhatsApp Siswa"
+                                                    >
+                                                        <MessageCircle className="size-4" />
+                                                    </a>
+                                                )}
+
+                                                <Link
+                                                    href={`/students/${student.slug || student.id}`}
+                                                    className="flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                                    title="Lihat Profil Siswa"
+                                                >
+                                                    <Eye className="size-4" />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                </Card>
+                )}
+
+                {/* Tab Content: 2. Mitra DUDI (List Style) */}
+                {activeTab === 'companies' && (
+                    <div className="space-y-3">
+                        {uniqueCompanies.length === 0 ? (
+                            <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center">
+                                <Building2 className="size-10 text-slate-300 mx-auto mb-2" />
+                                <p className="text-sm font-bold text-slate-700">
+                                    Belum ada mitra DUDI terhubung
+                                </p>
+                                <p className="text-xs text-slate-400 mt-0.5">
+                                    Siswa binaan belum ditempatkan pada mitra industri.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden divide-y divide-slate-100 shadow-2xs">
+                                {uniqueCompanies.map((company) => (
+                                    <div
+                                        key={company.id}
+                                        className="flex items-center justify-between p-3.5 sm:px-5 sm:py-4 hover:bg-slate-50/70 transition-colors gap-3"
+                                    >
+                                        {/* Left: Icon & Info */}
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-600/20">
+                                                <Building2 className="size-5" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h3 className="font-bold text-sm text-slate-900 truncate">
+                                                    {company.name}
+                                                </h3>
+                                                {company.address && (
+                                                    <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5 truncate">
+                                                        <MapPin className="size-3 text-slate-400 shrink-0" />
+                                                        <span className="truncate">{company.address}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Right: Badge */}
+                                        <div className="shrink-0">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-[#008953] text-xs font-bold border border-emerald-200">
+                                                <Users className="size-3.5" />
+                                                <span>{company.studentCount} Siswa Binaan</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </>
     );

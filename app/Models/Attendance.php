@@ -29,7 +29,29 @@ class Attendance extends Model
         'check_out_long',
         'selfie_path',
         'status',
+        'permission_reason',
+        'permission_doc',
+        'is_approved',
+        'approved_by',
+        'approved_at',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'permission_doc_url',
+    ];
+
+    /**
+     * Get permission_doc_url accessor.
+     */
+    public function getPermissionDocUrlAttribute(): ?string
+    {
+        return $this->permission_doc ? asset('storage/' . $this->permission_doc) : null;
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -44,6 +66,8 @@ class Attendance extends Model
             'check_in_long' => 'decimal:8',
             'check_out_lat' => 'decimal:8',
             'check_out_long' => 'decimal:8',
+            'is_approved' => 'boolean',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -53,6 +77,14 @@ class Attendance extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the teacher that approved the leave request.
+     */
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**

@@ -237,16 +237,6 @@ export default function CompaniesIndex({
         });
     };
 
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .filter(Boolean)
-            .map((n) => n[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase();
-    };
-
     const hasActiveFilters = Boolean(search);
 
     return (
@@ -373,18 +363,13 @@ export default function CompaniesIndex({
                                             >
                                                 {/* Company Name & Address */}
                                                 <td className="px-5 py-4 max-w-0">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-[#008953] font-bold text-xs ring-1 ring-emerald-600/20">
-                                                            {getInitials(company.name)}
+                                                    <div className="min-w-0">
+                                                        <div className="font-bold text-slate-900 truncate">
+                                                            {company.name}
                                                         </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="font-bold text-slate-900 truncate">
-                                                                {company.name}
-                                                            </div>
-                                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-normal mt-0.5 min-w-0">
-                                                                <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                                                <span className="truncate block">{company.address}</span>
-                                                            </div>
+                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-normal mt-0.5 min-w-0">
+                                                            <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                                            <span className="truncate block">{company.address}</span>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -608,24 +593,13 @@ export default function CompaniesIndex({
                         </div>
                     )}
 
-                    <DialogFooter className="gap-2 pt-2 border-t border-slate-100">
+                    <DialogFooter className="pt-2 border-t border-slate-100">
                         <Button
                             variant="outline"
                             onClick={() => setDetailCompany(null)}
-                            className="h-10 rounded-xl text-slate-600 font-semibold"
+                            className="h-10 rounded-xl text-slate-600 font-semibold w-full sm:w-auto"
                         >
                             Tutup
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                const target = detailCompany;
-                                setDetailCompany(null);
-                                if (target) openEditDialog(target);
-                            }}
-                            className="h-10 rounded-xl bg-[#008953] hover:bg-[#007346] font-bold text-white shadow-xs"
-                        >
-                            <Edit3 className="h-4 w-4 mr-1.5" />
-                            <span>Edit Data DUDI</span>
                         </Button>
                     </DialogFooter>
                 </DialogContent>

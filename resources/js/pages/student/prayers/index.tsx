@@ -163,7 +163,7 @@ export default function StudentPrayersIndex({
                 {/* Today Prayer Action Cards (2 Clean Cards: Dzuhur & Ashar) */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {/* Dzuhur Card */}
-                    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+                    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs hover-card-elevate">
                         <div>
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                                 <div className="flex items-center gap-2.5">
@@ -222,7 +222,7 @@ export default function StudentPrayersIndex({
                     </div>
 
                     {/* Ashar Card */}
-                    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+                    <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs hover-card-elevate">
                         <div>
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                                 <div className="flex items-center gap-2.5">

@@ -22,7 +22,7 @@ export default function AppSidebarLayout({
                     breadcrumbs={breadcrumbs}
                     onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
                 />
-                <main className="flex-1 flex flex-col">
+                <main className="flex-1 flex flex-col animate-page-enter">
                     {children}
                 </main>
             </AppContent>

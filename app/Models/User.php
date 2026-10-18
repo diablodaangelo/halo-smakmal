@@ -31,6 +31,7 @@ class User extends Authenticatable implements PasskeyUser
         'password',
         'role',
         'nis_nip',
+        'class_name',
         'company_id',
         'mentor_teacher_id',
         'phone',

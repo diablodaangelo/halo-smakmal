@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $user = $request->user()->load('company');
 
         if ($user->role === 'admin') {
-            return redirect()->route('admin.students.index');
+            return redirect()->route('admin.dashboard');
         }
 
         if ($user->role === 'guru_pembimbing') {
@@ -143,9 +143,17 @@ class DashboardController extends Controller
             $totalHadir = $allAttendances->where('status', 'hadir')->count();
             $totalTerlambat = $allAttendances->where('status', 'terlambat')->count();
 
+            $hasCheckedIn = (bool) $todayAttendance && in_array($todayAttendance->status, ['hadir', 'terlambat']);
+            $hasPermission = (bool) $todayAttendance && in_array($todayAttendance->status, ['izin', 'sakit']);
+
             $data['stats'] = [
-                'has_checked_in' => (bool) $todayAttendance,
+                'has_checked_in' => $hasCheckedIn,
                 'has_checked_out' => (bool) ($todayAttendance && $todayAttendance->check_out_time !== null),
+                'has_permission' => $hasPermission,
+                'permission_status' => $hasPermission ? $todayAttendance->status : null,
+                'permission_reason' => $todayAttendance?->permission_reason,
+                'permission_is_approved' => $todayAttendance?->is_approved,
+                'permission_doc_url' => $todayAttendance?->permission_doc ? asset('storage/' . $todayAttendance->permission_doc) : null,
                 'check_in_time' => $todayAttendance?->check_in_time ? substr($todayAttendance->check_in_time, 0, 5) : null,
                 'check_out_time' => $todayAttendance?->check_out_time ? substr($todayAttendance->check_out_time, 0, 5) : null,
                 'attendance_status' => $todayAttendance?->status,
@@ -161,6 +169,9 @@ class DashboardController extends Controller
                 'check_in_time' => $todayAttendance->check_in_time ? substr($todayAttendance->check_in_time, 0, 5) : null,
                 'check_out_time' => $todayAttendance->check_out_time ? substr($todayAttendance->check_out_time, 0, 5) : null,
                 'status' => $todayAttendance->status,
+                'permission_reason' => $todayAttendance->permission_reason,
+                'permission_doc_url' => $todayAttendance->permission_doc ? asset('storage/' . $todayAttendance->permission_doc) : null,
+                'is_approved' => $todayAttendance->is_approved,
                 'selfie_url' => $todayAttendance->selfie_path ? asset('storage/' . $todayAttendance->selfie_path) : null,
             ] : null;
 

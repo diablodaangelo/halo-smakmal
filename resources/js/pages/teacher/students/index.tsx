@@ -26,6 +26,7 @@ interface StudentItem {
     slug: string;
     nickname?: string | null;
     nis_nip: string;
+    class_name?: string | null;
     phone?: string | null;
     email: string;
     avatar_url?: string | null;
@@ -200,7 +201,7 @@ export default function TeacherStudentsIndex({
                             return (
                                 <div
                                     key={student.id}
-                                    className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all"
+                                    className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs hover-card-elevate hover:border-emerald-400"
                                 >
                                     {/* Top: Avatar, Name, NIS */}
                                     <div>
@@ -232,9 +233,16 @@ export default function TeacherStudentsIndex({
                                                     >
                                                         {student.name}
                                                     </Link>
-                                                    <p className="text-[11px] font-mono text-slate-400">
-                                                        NIS: {student.nis_nip || '-'}
-                                                    </p>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        {student.class_name && (
+                                                            <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.2 text-[10px] font-bold text-[#008953] border border-emerald-200">
+                                                                {student.class_name}
+                                                            </span>
+                                                        )}
+                                                        <span className="text-[11px] font-mono text-slate-400">
+                                                            NIS: {student.nis_nip || '-'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 

@@ -10,7 +10,13 @@ import {
     InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
-import { store } from '@/routes/two-factor/login';
+
+const store = {
+    form: () => ({
+        action: '/two-factor-challenge',
+        method: 'post' as const,
+    }),
+};
 
 export default function TwoFactorChallenge() {
     const [showRecoveryInput, setShowRecoveryInput] = useState<boolean>(false);

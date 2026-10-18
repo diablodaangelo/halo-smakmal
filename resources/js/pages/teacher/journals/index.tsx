@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     BookOpen,
     Building2,
@@ -33,6 +33,7 @@ interface StudentItem {
     id: number;
     name: string;
     nis_nip: string;
+    class_name?: string | null;
     phone?: string | null;
     company?: {
         id: number;
@@ -52,6 +53,7 @@ interface JournalItem {
         id: number;
         name: string;
         nis_nip: string;
+        class_name?: string | null;
         company_name: string;
     };
     date: string;
@@ -100,22 +102,10 @@ export default function TeacherJournalsIndex({
     const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
         filters.student_id ? Number(filters.student_id) : (students.length > 0 ? students[0].id : null)
     );
-    const [searchQuery, setSearchQuery] = useState('');
     const [activeJournal, setActiveJournal] = useState<JournalItem | null>(null);
     const [mentorNotes, setMentorNotes] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
-
-    const filteredStudents = useMemo(() => {
-        if (!searchQuery.trim()) return students;
-        const query = searchQuery.toLowerCase();
-        return students.filter(
-            (s) =>
-                s.name.toLowerCase().includes(query) ||
-                s.nis_nip.toLowerCase().includes(query) ||
-                (s.company?.name && s.company.name.toLowerCase().includes(query))
-        );
-    }, [students, searchQuery]);
 
     const activeStudent = useMemo(() => {
         return students.find((s) => s.id === selectedStudentId) || (students.length > 0 ? students[0] : null);
@@ -180,126 +170,77 @@ export default function TeacherJournalsIndex({
                     </div>
                 </div>
 
-                {/* 2. Pilihan Siswa Binaan Grid (No "Semua Siswa" option) */}
-                <div className="space-y-2.5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Pilih Buku Jurnal Siswa:
-                        </h2>
-                        {students.length > 3 && (
-                            <div className="w-full sm:w-64">
-                                <Input
-                                    placeholder="Cari nama atau NIS siswa..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="h-8 text-xs rounded-xl border-slate-200"
-                                />
+                {/* Clean Filter & Student Selector Bar */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-4 shadow-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2.5 flex-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 shrink-0">
+                                Pilih Siswa:
+                            </span>
+
+                            {/* Dropdown Pilih Siswa */}
+                            <select
+                                value={selectedStudentId ?? ''}
+                                onChange={(e) => handleSelectStudent(Number(e.target.value))}
+                                className="h-10 px-3.5 py-1.5 bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer transition min-w-[240px] flex-1 sm:flex-initial"
+                            >
+                                {students.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name} {s.class_name ? `(${s.class_name})` : ''} - {s.company?.name || 'Belum Diplot'} ({s.stats?.total_journals ?? 0} hari)
+                                    </option>
+                                ))}
+                            </select>
+
+                            {activeStudent && (
+                                <Link
+                                    href={`/students/${activeStudent.slug || activeStudent.id}`}
+                                    className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                    title="Lihat Profil Siswa"
+                                >
+                                    <Eye className="size-4" />
+                                </Link>
+                            )}
+                        </div>
+
+                        {/* Info Terisi */}
+                        {activeStudent && (
+                            <div className="flex items-center gap-2 text-xs font-medium text-slate-600 self-start sm:self-auto">
+                                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 text-xs font-bold text-[#008953]">
+                                    <CalendarCheck className="size-3.5 text-[#008953]" />
+                                    <span>Jurnal Terisi: <strong>{journals?.total ?? 0}</strong> / 120 Hari</span>
+                                </span>
                             </div>
                         )}
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                        {filteredStudents.map((s) => {
-                            const isSelected = activeStudent?.id === s.id;
-                            const totalJournals = s.stats?.total_journals ?? 0;
-
-                            return (
-                                <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => handleSelectStudent(s.id)}
-                                    className={`flex items-center justify-between p-3 rounded-2xl border text-left text-xs transition cursor-pointer ${
-                                        isSelected
-                                            ? 'border-[#008953] bg-emerald-50/90 text-slate-900 ring-2 ring-[#008953]/30 shadow-xs'
-                                            : 'border-slate-200/90 bg-white hover:border-emerald-300 text-slate-800'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5 min-w-0 pr-1.5">
-                                        <div className={`flex size-8 shrink-0 items-center justify-center rounded-xl font-bold text-xs ${
-                                            isSelected
-                                                ? 'bg-[#008953] text-white'
-                                                : 'bg-emerald-50 text-[#008953] border border-emerald-200/70'
-                                        }`}>
-                                            {s.name.slice(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="truncate">
-                                            <div className="font-bold truncate text-slate-900">
-                                                {s.name}
-                                            </div>
-                                            <div className="text-[11px] text-slate-500 truncate flex items-center gap-1">
-                                                <Building2 className="size-3 shrink-0 text-slate-400" />
-                                                <span className="truncate">{s.company?.name || 'Belum Diplot'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="shrink-0">
-                                        <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${
-                                            isSelected ? 'bg-[#008953] text-white' : 'bg-slate-100 text-slate-600'
-                                        }`}>
-                                            {totalJournals} Hari
-                                        </span>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
                 </div>
 
-                {/* 3. Banner Siswa Aktif (Green with White Text) */}
-                {activeStudent && (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-[#008953] px-5 py-3.5 text-xs text-white shadow-xs">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white font-bold">
-                                <BookOpen className="size-4" />
-                            </div>
-                            <div className="min-w-0">
-                                <span className="text-emerald-50">
-                                    Buku Jurnal: <strong className="font-bold text-white">{activeStudent.name}</strong>
-                                    {activeStudent.nis_nip ? ` (NIS: ${activeStudent.nis_nip})` : ''}
-                                </span>
-                                <div className="text-[11px] text-emerald-100/90 truncate">
-                                    Tempat PKL: {activeStudent.company?.name || 'Belum diplot DUDI'}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2 shrink-0 font-medium text-xs">
-                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/15 px-3 py-1.5 text-emerald-50">
-                                <CalendarCheck className="size-3.5 text-emerald-200" />
-                                <span>Terisi: <strong className="font-bold text-white">{journals?.total ?? 0}</strong> / 120 Hari</span>
-                            </span>
-                        </div>
-                    </div>
-                )}
-
                 {/* 4. Tabel Logbook Jurnal Siswa */}
-                <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
-                    <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="size-4 text-[#008953]" />
-                            <h3 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                                Daftar Riwayat Jurnal Siswa
-                            </h3>
-                        </div>
-                        <span className="text-xs font-semibold text-slate-500">
-                            Total: <strong className="text-slate-900">{journals?.total ?? 0} Hari</strong>
-                        </span>
-                    </div>
-
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
+                        <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50/40 text-slate-500 font-semibold">
-                                    <th className="px-5 py-3.5 w-28">Hari PKL</th>
-                                    <th className="px-5 py-3.5 min-w-[280px]">Kegiatan / Pekerjaan</th>
-                                    <th className="px-5 py-3.5 w-44">Kendala</th>
-                                    <th className="px-5 py-3.5 w-24 text-center">Foto</th>
-                                    <th className="px-5 py-3.5 w-56">Catatan Guru Pembimbing</th>
-                                    <th className="px-5 py-3.5 w-24 text-right">Aksi</th>
+                                <tr className="bg-[#008953] text-white">
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-xl w-28">
+                                        Hari PKL
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider min-w-[280px]">
+                                        Kegiatan / Pekerjaan
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider w-44">
+                                        Kendala
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider w-24 text-center">
+                                        Foto
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider w-56">
+                                        Catatan Guru Pembimbing
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-xl w-24">
+                                        Aksi
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 text-slate-700">
+                            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700 font-medium">
                                 {(!journals?.data || journals.data.length === 0) ? (
                                     <tr>
                                         <td colSpan={6} className="py-12 text-center text-slate-400">

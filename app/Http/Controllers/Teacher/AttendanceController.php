@@ -42,6 +42,7 @@ class AttendanceController extends Controller
                     'id' => $student->id,
                     'name' => $student->name,
                     'nis_nip' => $student->nis_nip,
+                    'class_name' => $student->class_name,
                     'phone' => $student->phone,
                     'company' => $student->company ? [
                         'id' => $student->company->id,
@@ -130,6 +131,7 @@ class AttendanceController extends Controller
                     'id' => $att->user?->id,
                     'name' => $att->user?->name,
                     'nis_nip' => $att->user?->nis_nip,
+                    'class_name' => $att->user?->class_name,
                     'phone' => $att->user?->phone,
                     'company_name' => $company?->name ?? 'Belum Diplot',
                 ],
@@ -139,6 +141,11 @@ class AttendanceController extends Controller
                 'check_out_time' => $att->check_out_time ? substr($att->check_out_time, 0, 5) : null,
                 'is_missed_checkout' => $isMissedCheckOut,
                 'status' => $att->status,
+                'permission_reason' => $att->permission_reason,
+                'permission_doc_url' => $att->permission_doc ? asset('storage/' . $att->permission_doc) : null,
+                'is_approved' => $att->is_approved,
+                'approved_by_name' => $att->approver?->name,
+                'approved_at' => $att->approved_at ? Carbon::parse($att->approved_at)->format('d/m/Y H:i') : null,
                 'check_in_lat' => $att->check_in_lat,
                 'check_in_long' => $att->check_in_long,
                 'check_in_distance' => $checkInDistance,
@@ -148,6 +155,29 @@ class AttendanceController extends Controller
                 'selfie_url' => $att->selfie_path ? asset('storage/' . $att->selfie_path) : null,
             ];
         });
+
+        // Pending permission requests for this teacher
+        $pendingPermissions = Attendance::whereHas('user', fn($q) => $q->where('mentor_teacher_id', $teacher->id))
+            ->whereIn('status', ['izin', 'sakit'])
+            ->whereNull('is_approved')
+            ->with(['user.company', 'company'])
+            ->latest('date')
+            ->get()
+            ->map(function ($att) {
+                return [
+                    'id' => $att->id,
+                    'user_id' => $att->user_id,
+                    'user_name' => $att->user?->name,
+                    'nis_nip' => $att->user?->nis_nip,
+                    'class_name' => $att->user?->class_name,
+                    'company_name' => $att->user?->company?->name ?? 'Belum Diplot',
+                    'date' => $att->date instanceof Carbon ? $att->date->format('Y-m-d') : (string) $att->date,
+                    'date_formatted' => $att->date instanceof Carbon ? $att->date->isoFormat('dddd, D MMMM Y') : Carbon::parse($att->date)->isoFormat('dddd, D MMMM Y'),
+                    'status' => $att->status,
+                    'permission_reason' => $att->permission_reason,
+                    'permission_doc_url' => $att->permission_doc ? asset('storage/' . $att->permission_doc) : null,
+                ];
+            });
 
         // Summary Stats Today
         $today = Carbon::today()->toDateString();
@@ -165,11 +195,13 @@ class AttendanceController extends Controller
             'today_present' => $todayPresent,
             'today_late' => $todayLate,
             'today_absent' => max(0, $totalStudents - $todayPresent),
+            'pending_permissions_count' => $pendingPermissions->count(),
         ];
 
         return Inertia::render('teacher/attendances/index', [
             'attendances' => $attendances,
             'students' => $students,
+            'pending_permissions' => $pendingPermissions,
             'stats' => $stats,
             'filters' => [
                 'student_id' => $studentId ? (int) $studentId : null,
@@ -178,5 +210,43 @@ class AttendanceController extends Controller
             ],
             'today_date' => Carbon::now()->isoFormat('dddd, D MMMM Y'),
         ]);
+    }
+
+    /**
+     * Verify (Approve / Reject) student leave or sickness permission request.
+     */
+    public function verifyPermission(Request $request, Attendance $attendance)
+    {
+        $teacher = $request->user();
+
+        // Ensure student is guided by this teacher
+        if ($attendance->user->mentor_teacher_id !== $teacher->id) {
+            abort(403, 'Anda bukan guru pembimbing dari siswa ini.');
+        }
+
+        $validated = $request->validate([
+            'is_approved' => 'required|boolean',
+        ]);
+
+        $statusLabel = $attendance->status === 'sakit' ? 'Sakit' : 'Izin';
+
+        if ($validated['is_approved']) {
+            $attendance->update([
+                'is_approved' => true,
+                'approved_by' => $teacher->id,
+                'approved_at' => now(),
+            ]);
+            $msg = "Permohonan {$statusLabel} dari {$attendance->user->name} berhasil disetujui.";
+        } else {
+            $attendance->update([
+                'is_approved' => false,
+                'approved_by' => $teacher->id,
+                'approved_at' => now(),
+                'status' => 'alpa',
+            ]);
+            $msg = "Permohonan {$statusLabel} dari {$attendance->user->name} ditolak (status diubah menjadi Alpa).";
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 }

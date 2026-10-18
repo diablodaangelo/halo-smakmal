@@ -323,12 +323,9 @@ export default function TeachersIndex({
                                                             {getInitials(teacher.name)}
                                                         </div>
                                                         <div>
-                                                            <Link
-                                                                href={`/teachers/${teacher.slug || teacher.id}`}
-                                                                className="font-bold text-slate-900 hover:text-[#008953] hover:underline"
-                                                            >
+                                                            <div className="font-bold text-slate-900">
                                                                 {teacher.name}
-                                                            </Link>
+                                                            </div>
                                                             <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
                                                                 NIP: {teacher.nis_nip || '-'}
                                                             </div>

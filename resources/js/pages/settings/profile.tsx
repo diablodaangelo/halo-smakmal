@@ -22,6 +22,7 @@ interface UserData {
     email: string;
     role: string;
     nis_nip?: string | null;
+    class_name?: string | null;
     phone?: string | null;
     avatar_url?: string | null;
     company_name?: string | null;
@@ -181,6 +182,11 @@ export default function ProfilePage({ user, status, errors, flash }: PageProps) 
 
                                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-slate-500">
                                         <span>{user.email}</span>
+                                        {user.class_name && (
+                                            <span className="font-bold text-[#008953] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                                Kelas: {user.class_name}
+                                            </span>
+                                        )}
                                         {user.nis_nip && (
                                             <span className="font-semibold text-slate-600">
                                                 NIP/NIS: {user.nis_nip}

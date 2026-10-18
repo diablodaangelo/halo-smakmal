@@ -42,6 +42,7 @@ class TeacherProfileController extends Controller
                     'slug' => $student->slug,
                     'nickname' => $student->nickname,
                     'nis_nip' => $student->nis_nip,
+                    'class_name' => $student->class_name,
                     'phone' => $student->phone,
                     'avatar_url' => $student->avatar_url,
                     'company' => $student->company ? [

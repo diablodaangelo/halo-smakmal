@@ -1,6 +1,9 @@
 import { useHttp } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
-import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
+
+const qrCode = () => ({ url: '/user/two-factor-qr-code', method: 'get' as const });
+const recoveryCodes = () => ({ url: '/user/two-factor-recovery-codes', method: 'get' as const });
+const secretKey = () => ({ url: '/user/two-factor-secret-key', method: 'get' as const });
 
 export type UseTwoFactorAuthReturn = {
     qrCodeSvg: string | null;

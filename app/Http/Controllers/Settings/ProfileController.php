@@ -32,6 +32,7 @@ class ProfileController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'nis_nip' => $user->nis_nip,
+                'class_name' => $user->class_name,
                 'phone' => $user->phone,
                 'avatar_url' => $user->avatar ? asset('storage/' . $user->avatar) : null,
                 'company_name' => $user->company?->name,

@@ -35,6 +35,7 @@ class JournalReviewController extends Controller
                     'id' => $student->id,
                     'name' => $student->name,
                     'nis_nip' => $student->nis_nip,
+                    'class_name' => $student->class_name,
                     'phone' => $student->phone,
                     'company' => $student->company ? [
                         'id' => $student->company->id,
@@ -91,6 +92,7 @@ class JournalReviewController extends Controller
                     'id' => $journal->user?->id,
                     'name' => $journal->user?->name,
                     'nis_nip' => $journal->user?->nis_nip,
+                    'class_name' => $journal->user?->class_name,
                     'company_name' => $journal->user?->company?->name ?? 'Belum Diplot',
                 ],
                 'date' => $journal->date instanceof Carbon ? $journal->date->format('Y-m-d') : (string) $journal->date,

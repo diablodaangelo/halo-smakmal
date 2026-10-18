@@ -21,6 +21,7 @@ class StudentController extends Controller
     public function index(Request $request): Response
     {
         $search = $request->query('search');
+        $classFilter = $request->query('class_name');
         $companyFilter = $request->query('company_id');
         $teacherFilter = $request->query('teacher_id');
 
@@ -30,8 +31,12 @@ class StudentController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('nis_nip', 'like', "%{$search}%");
+                      ->orWhere('nis_nip', 'like', "%{$search}%")
+                      ->orWhere('class_name', 'like', "%{$search}%");
                 });
+            })
+            ->when($classFilter, function ($query, $class) {
+                $query->where('class_name', $class);
             })
             ->when($companyFilter, function ($query, $companyId) {
                 if ($companyId === 'unassigned') {
@@ -53,6 +58,12 @@ class StudentController extends Controller
 
         $companies = Company::orderBy('name')->get(['id', 'name', 'address']);
         $teachers = User::where('role', 'guru_pembimbing')->orderBy('name')->get(['id', 'name', 'nis_nip']);
+        $classes = User::where('role', 'siswa')
+            ->whereNotNull('class_name')
+            ->where('class_name', '!=', '')
+            ->distinct()
+            ->orderBy('class_name')
+            ->pluck('class_name');
 
         $totalStudents = User::where('role', 'siswa')->count();
         $assignedDudiCount = User::where('role', 'siswa')->whereNotNull('company_id')->count();
@@ -63,9 +74,11 @@ class StudentController extends Controller
             'students' => $students,
             'filters' => [
                 'search' => $search ?? '',
+                'class_name' => $classFilter ?? '',
                 'company_id' => $companyFilter ?? '',
                 'teacher_id' => $teacherFilter ?? '',
             ],
+            'classes' => $classes,
             'companies' => $companies,
             'teachers' => $teachers,
             'metrics' => [
@@ -86,6 +99,7 @@ class StudentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'nis_nip' => ['nullable', 'string', 'max:50', 'unique:users,nis_nip'],
+            'class_name' => ['nullable', 'string', 'max:50'],
             'password' => ['required', 'string', Password::defaults()],
             'company_id' => ['nullable', 'exists:companies,id'],
             'mentor_teacher_id' => ['nullable', 'exists:users,id'],
@@ -116,6 +130,7 @@ class StudentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($student->id)],
             'nis_nip' => ['nullable', 'string', 'max:50', Rule::unique('users', 'nis_nip')->ignore($student->id)],
+            'class_name' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', Password::defaults()],
             'company_id' => ['nullable', 'exists:companies,id'],
             'mentor_teacher_id' => ['nullable', 'exists:users,id'],

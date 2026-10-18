@@ -35,6 +35,7 @@ class PrayerReviewController extends Controller
                     'id' => $student->id,
                     'name' => $student->name,
                     'nis_nip' => $student->nis_nip,
+                    'class_name' => $student->class_name,
                     'phone' => $student->phone,
                     'company' => $student->company ? [
                         'id' => $student->company->id,
@@ -71,6 +72,7 @@ class PrayerReviewController extends Controller
                     'id' => $log->user?->id,
                     'name' => $log->user?->name,
                     'nis_nip' => $log->user?->nis_nip,
+                    'class_name' => $log->user?->class_name,
                     'company_name' => $log->user?->company?->name ?? 'Belum Diplot',
                 ],
                 'date' => $log->date instanceof Carbon ? $log->date->format('Y-m-d') : (string) $log->date,

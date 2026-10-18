@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
@@ -23,7 +24,18 @@ class CheckRole
                 ], 403);
             }
 
-            abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk mengakses halaman ini.');
+            $readableRoles = array_map(fn ($r) => match ($r) {
+                'admin' => 'Administrator',
+                'guru_pembimbing' => 'Guru Pembimbing',
+                'siswa' => 'Siswa PKL',
+                'pembimbing_dudi' => 'Pembimbing DUDI',
+                default => $r,
+            }, $roles);
+
+            return Inertia::render('error', [
+                'status' => 403,
+                'message' => 'Akses ditolak. Halaman ini hanya dapat diakses oleh peran ' . implode(' atau ', $readableRoles) . '.',
+            ])->toResponse($request)->setStatusCode(403);
         }
 
         return $next($request);

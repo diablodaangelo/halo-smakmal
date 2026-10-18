@@ -286,6 +286,69 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Handle student leave / sickness permission request.
+     */
+    public function requestPermission(Request $request): RedirectResponse
+    {
+        $user = $request->user()->load('company');
+
+        if (! $user->company) {
+            return redirect()->back()->withErrors([
+                'permission' => 'Anda belum terdaftar di DUDI manapun.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:izin,sakit',
+            'permission_reason' => 'required|string|max:1000',
+            'permission_doc' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $today = Carbon::today()->toDateString();
+
+        $existing = Attendance::where('user_id', $user->id)
+            ->whereDate('date', $today)
+            ->first();
+
+        if ($existing) {
+            if ($existing->status === 'hadir' || $existing->status === 'terlambat') {
+                return redirect()->back()->withErrors([
+                    'permission' => 'Anda sudah melakukan presensi masuk hari ini, tidak dapat mengajukan izin.',
+                ]);
+            }
+            if ($existing->status === 'izin' || $existing->status === 'sakit') {
+                return redirect()->back()->withErrors([
+                    'permission' => 'Anda sudah mengajukan permohonan ' . $existing->status . ' untuk hari ini.',
+                ]);
+            }
+        }
+
+        $docPath = null;
+        if ($request->hasFile('permission_doc')) {
+            $docPath = $request->file('permission_doc')->store('attendances/permissions', 'public');
+        }
+
+        Attendance::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'date' => $today,
+            ],
+            [
+                'company_id' => $user->company->id,
+                'status' => $validated['status'],
+                'permission_reason' => $validated['permission_reason'],
+                'permission_doc' => $docPath,
+                'is_approved' => null, // Pending approval
+                'approved_by' => null,
+                'approved_at' => null,
+            ]
+        );
+
+        $label = $validated['status'] === 'sakit' ? 'Sakit' : 'Izin';
+        return redirect()->back()->with('success', "Permohonan {$label} berhasil diajukan dan sedang menunggu persetujuan Guru Pembimbing.");
+    }
+
+    /**
      * Helper to store base64 image data URL to public storage.
      */
     private function saveBase64Image(string $base64Data, string $folder): string

@@ -1,9 +1,10 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Building2,
     Calendar,
     CheckCircle2,
     Clock,
+    Eye,
     FileSpreadsheet,
     FileText,
     MapPin,
@@ -21,6 +22,7 @@ interface StudentItem {
     id: number;
     name: string;
     nis_nip: string;
+    class_name?: string | null;
     phone?: string | null;
     company?: {
         id: number;
@@ -39,6 +41,7 @@ interface PrayerItem {
         id: number;
         name: string;
         nis_nip: string;
+        class_name?: string | null;
         company_name: string;
     };
     date: string;
@@ -91,18 +94,6 @@ export default function TeacherPrayersIndex({
     const [selectedPrayerType, setSelectedPrayerType] = useState<string>(
         filters.prayer_type ?? ''
     );
-    const [searchQuery, setSearchQuery] = useState('');
-
-    const filteredStudents = useMemo(() => {
-        if (!searchQuery.trim()) return students;
-        const query = searchQuery.toLowerCase();
-        return students.filter(
-            (s) =>
-                s.name.toLowerCase().includes(query) ||
-                s.nis_nip.toLowerCase().includes(query) ||
-                (s.company?.name && s.company.name.toLowerCase().includes(query))
-        );
-    }, [students, searchQuery]);
 
     const activeStudent = useMemo(() => {
         return students.find((s) => s.id === selectedStudentId) || (students.length > 0 ? students[0] : null);
@@ -196,165 +187,103 @@ export default function TeacherPrayersIndex({
                     </div>
                 </div>
 
-                {/* 2. Pilihan Siswa Binaan Grid (No "Semua Siswa" option) */}
-                <div className="space-y-2.5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Pilih Siswa Binaan:
-                        </h2>
-                        {students.length > 3 && (
-                            <div className="w-full sm:w-64">
-                                <Input
-                                    placeholder="Cari nama atau NIS siswa..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="h-8 text-xs rounded-xl border-slate-200"
-                                />
-                            </div>
-                        )}
-                    </div>
+                {/* Clean Filter & Student Selector Bar */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-4 shadow-xs">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2.5 flex-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 shrink-0">
+                                Pilih Siswa:
+                            </span>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                        {filteredStudents.map((s) => {
-                            const isSelected = activeStudent?.id === s.id;
-                            const totalPrayers = s.stats?.total_prayers ?? 0;
+                            {/* Dropdown Pilih Siswa */}
+                            <select
+                                value={selectedStudentId ?? ''}
+                                onChange={(e) => handleSelectStudent(Number(e.target.value))}
+                                className="h-10 px-3.5 py-1.5 bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer transition min-w-[240px] flex-1 sm:flex-initial"
+                            >
+                                {students.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name} {s.class_name ? `(${s.class_name})` : ''} - {s.company?.name || 'Belum Diplot'} ({s.stats?.total_prayers ?? 0} log)
+                                    </option>
+                                ))}
+                            </select>
 
-                            return (
-                                <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => handleSelectStudent(s.id)}
-                                    className={`flex items-center justify-between p-3 rounded-2xl border text-left text-xs transition cursor-pointer ${
-                                        isSelected
-                                            ? 'border-[#008953] bg-emerald-50/90 text-slate-900 ring-2 ring-[#008953]/30 shadow-xs'
-                                            : 'border-slate-200/90 bg-white hover:border-emerald-300 text-slate-800'
-                                    }`}
+                            {activeStudent && (
+                                <Link
+                                    href={`/students/${activeStudent.slug || activeStudent.id}`}
+                                    className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                    title="Lihat Profil Siswa"
                                 >
-                                    <div className="flex items-center gap-2.5 min-w-0 pr-1.5">
-                                        <div className={`flex size-8 shrink-0 items-center justify-center rounded-xl font-bold text-xs ${
-                                            isSelected
-                                                ? 'bg-[#008953] text-white'
-                                                : 'bg-emerald-50 text-[#008953] border border-emerald-200/70'
-                                        }`}>
-                                            {s.name.slice(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="truncate">
-                                            <div className="font-bold truncate text-slate-900">
-                                                {s.name}
-                                            </div>
-                                            <div className="text-[11px] text-slate-500 truncate flex items-center gap-1">
-                                                <Building2 className="size-3 shrink-0 text-slate-400" />
-                                                <span className="truncate">{s.company?.name || 'Belum Diplot'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <Eye className="size-4" />
+                                </Link>
+                            )}
+                        </div>
 
-                                    <div className="shrink-0">
-                                        <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${
-                                            isSelected ? 'bg-[#008953] text-white' : 'bg-slate-100 text-slate-600'
-                                        }`}>
-                                            {totalPrayers} Log
-                                        </span>
-                                    </div>
-                                </button>
-                            );
-                        })}
+                        {/* Filter Waktu Salat (Semua, Dzuhur, Ashar) */}
+                        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl self-start md:self-auto">
+                            <button
+                                type="button"
+                                onClick={() => handleFilterPrayerType('')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    selectedPrayerType === ''
+                                        ? 'bg-[#008953] text-white shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                Semua Salat
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleFilterPrayerType('dzuhur')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                                    selectedPrayerType === 'dzuhur'
+                                        ? 'bg-[#008953] text-white shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                <Sun className="size-3.5" />
+                                <span>Dzuhur</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleFilterPrayerType('ashar')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                                    selectedPrayerType === 'ashar'
+                                        ? 'bg-[#008953] text-white shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                <Moon className="size-3.5" />
+                                <span>Ashar</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* 3. Banner Siswa Aktif & Filter Waktu Salat (Green with White Text) */}
-                {activeStudent && (
-                    <div className="rounded-2xl bg-[#008953] p-4 text-white shadow-xs">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white font-bold text-sm">
-                                    <Sun className="size-5" />
-                                </div>
-                                <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h3 className="font-bold text-sm sm:text-base text-white truncate">
-                                            Log Salat: {activeStudent.name}
-                                        </h3>
-                                        {activeStudent.nis_nip && (
-                                            <span className="rounded-md bg-black/20 px-2 py-0.5 text-[11px] font-mono text-emerald-100">
-                                                NIS: {activeStudent.nis_nip}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-emerald-100 truncate mt-0.5">
-                                        Tempat PKL: {activeStudent.company?.name || 'Belum diplot DUDI'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Filter Buttons (Semua, Dzuhur, Ashar) */}
-                            <div className="flex items-center gap-1.5 bg-black/15 p-1 rounded-xl shrink-0 self-start md:self-auto">
-                                <button
-                                    type="button"
-                                    onClick={() => handleFilterPrayerType('')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                                        selectedPrayerType === ''
-                                            ? 'bg-white text-[#008953] shadow-xs'
-                                            : 'text-emerald-100 hover:text-white'
-                                    }`}
-                                >
-                                    Semua Salat
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleFilterPrayerType('dzuhur')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                                        selectedPrayerType === 'dzuhur'
-                                            ? 'bg-white text-[#008953] shadow-xs'
-                                            : 'text-emerald-100 hover:text-white'
-                                    }`}
-                                >
-                                    <Sun className="size-3.5" />
-                                    <span>Dzuhur</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleFilterPrayerType('ashar')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                                        selectedPrayerType === 'ashar'
-                                            ? 'bg-white text-[#008953] shadow-xs'
-                                            : 'text-emerald-100 hover:text-white'
-                                    }`}
-                                >
-                                    <Moon className="size-3.5" />
-                                    <span>Ashar</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* 4. Tabel Logbook Salat Siswa */}
-                <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
-                    <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="size-4 text-[#008953]" />
-                            <h3 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                                Rekap Riwayat Salat Siswa
-                            </h3>
-                        </div>
-                        <span className="text-xs font-semibold text-slate-500">
-                            Total: <strong className="text-slate-900">{prayerLogs?.total ?? 0} Catatan</strong>
-                        </span>
-                    </div>
-
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
+                        <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50/40 text-slate-500 font-semibold">
-                                    <th className="px-5 py-3.5 w-36">Hari & Tanggal</th>
-                                    <th className="px-5 py-3.5 w-36">Waktu Salat</th>
-                                    <th className="px-5 py-3.5 w-44">Status Pelaksanaan</th>
-                                    <th className="px-5 py-3.5 w-32">Pukul</th>
-                                    <th className="px-5 py-3.5 min-w-[200px]">Tempat / Lokasi</th>
+                                <tr className="bg-[#008953] text-white">
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-xl w-36">
+                                        Hari & Tanggal
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider w-36">
+                                        Waktu Salat
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider w-44">
+                                        Status Pelaksanaan
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider w-32">
+                                        Pukul
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider rounded-tr-xl min-w-[200px]">
+                                        Tempat / Lokasi
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 text-slate-700">
+                            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700 font-medium">
                                 {(!prayerLogs?.data || prayerLogs.data.length === 0) ? (
                                     <tr>
                                         <td colSpan={5} className="py-12 text-center text-slate-400">
