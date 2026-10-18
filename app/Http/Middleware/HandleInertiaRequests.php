@@ -46,6 +46,30 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'pending_permissions_count' => fn () => $request->user()?->role === 'guru_pembimbing'
+                ? \App\Models\Attendance::whereHas('user', fn($q) => $q->where('mentor_teacher_id', $request->user()->id))
+                    ->whereIn('status', ['izin', 'sakit'])
+                    ->whereNull('is_approved')
+                    ->count()
+                : 0,
+            'pending_permissions' => fn () => $request->user()?->role === 'guru_pembimbing'
+                ? \App\Models\Attendance::whereHas('user', fn($q) => $q->where('mentor_teacher_id', $request->user()->id))
+                    ->whereIn('status', ['izin', 'sakit'])
+                    ->whereNull('is_approved')
+                    ->with(['user.company', 'company'])
+                    ->latest('date')
+                    ->get()
+                    ->map(fn($att) => [
+                        'id' => $att->id,
+                        'user_name' => $att->user?->name,
+                        'class_name' => $att->user?->class_name,
+                        'date_formatted' => $att->date instanceof \Carbon\Carbon ? $att->date->isoFormat('dddd, D MMMM Y') : \Carbon\Carbon::parse($att->date)->isoFormat('dddd, D MMMM Y'),
+                        'status' => $att->status,
+                        'permission_reason' => $att->permission_reason,
+                        'permission_doc_url' => $att->permission_doc ? asset('storage/' . $att->permission_doc) : null,
+                        'company_name' => $att->user?->company?->name ?? 'Belum Diplot',
+                    ])
+                : [],
         ];
     }
 }

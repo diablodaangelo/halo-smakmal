@@ -2,7 +2,7 @@ export type User = {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'guru_pembimbing' | 'pembimbing_dudi' | 'siswa';
+    role: 'admin' | 'guru_pembimbing' | 'siswa';
     nis_nip?: string | null;
     phone_number?: string | null;
     company_id?: number | null;

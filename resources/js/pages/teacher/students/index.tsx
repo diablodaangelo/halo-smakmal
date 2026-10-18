@@ -89,7 +89,7 @@ export default function TeacherStudentsIndex({
     const getAttendanceStatusBadge = (todayAtt?: StudentItem['today_attendance']) => {
         if (!todayAtt) {
             return (
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-500 border border-slate-200">
+                <span className="text-xs font-medium text-slate-400">
                     Belum Presensi
                 </span>
             );
@@ -97,25 +97,25 @@ export default function TeacherStudentsIndex({
 
         if (todayAtt.status === 'hadir') {
             return (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-[#008953] border border-emerald-200/80">
-                    <CheckCircle2 className="size-3 text-[#008953]" />
-                    Hadir ({todayAtt.check_in_time} WIB)
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#008953]">
+                    <span>Hadir ({todayAtt.check_in_time} WIB)</span>
+                    <CheckCircle2 className="size-3.5 text-[#008953]" />
                 </span>
             );
         }
 
         if (todayAtt.status === 'terlambat') {
             return (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 border border-amber-200/80">
-                    <Clock className="size-3 text-amber-600" />
-                    Terlambat ({todayAtt.check_in_time} WIB)
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                    <span>Terlambat ({todayAtt.check_in_time} WIB)</span>
+                    <Clock className="size-3.5 text-amber-500" />
                 </span>
             );
         }
 
         if (todayAtt.status === 'izin') {
             return (
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-200/80">
+                <span className="text-xs font-bold text-blue-600">
                     Izin
                 </span>
             );
@@ -123,14 +123,14 @@ export default function TeacherStudentsIndex({
 
         if (todayAtt.status === 'sakit') {
             return (
-                <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-0.5 text-[11px] font-bold text-purple-700 border border-purple-200/80">
+                <span className="text-xs font-bold text-purple-600">
                     Sakit
                 </span>
             );
         }
 
         return (
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 border border-rose-200/80">
+            <span className="text-xs font-bold text-rose-600">
                 Alpa
             </span>
         );
@@ -147,9 +147,6 @@ export default function TeacherStudentsIndex({
                         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                             Daftar Siswa Binaan
                         </h1>
-                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                            Daftar seluruh siswa PKL yang Anda bimbing. Klik nama atau kartu siswa untuk melihat profil lengkap.
-                        </p>
                     </div>
 
                     {/* Quick Stats */}
@@ -185,133 +182,143 @@ export default function TeacherStudentsIndex({
                     </form>
                 </div>
 
-                {/* 3. Grid Kartu Siswa Binaan */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {students.length === 0 ? (
-                        <div className="col-span-full rounded-2xl border border-slate-200/90 bg-white p-12 text-center text-slate-400">
-                            <Users className="size-8 mx-auto text-slate-300 mb-2" />
-                            <p className="font-semibold text-sm text-slate-600">Tidak ada siswa binaan yang ditemukan.</p>
-                            <p className="text-xs text-slate-400 mt-0.5">Siswa binaan akan muncul setelah ditugaskan oleh Admin.</p>
-                        </div>
-                    ) : (
-                        students.map((student) => {
-                            const waUrl = formatWhatsAppUrl(student.phone);
-                            const profileHref = `/students/${student.slug || student.id}`;
+                {/* 3. Tabel Siswa Binaan (Clean, Simple, Cakep) */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-[#008953] text-white">
+                                    <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider rounded-tl-xl min-w-[240px]">
+                                        Siswa
+                                    </th>
+                                    <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider min-w-[200px]">
+                                        Tempat DUDI
+                                    </th>
+                                    <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider min-w-[180px]">
+                                        Presensi Hari Ini
+                                    </th>
+                                    <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider min-w-[160px]">
+                                        Rekap Aktivitas
+                                    </th>
+                                    <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-right rounded-tr-xl w-32">
+                                        Aksi
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700 font-medium">
+                                {students.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-12 text-center text-slate-400">
+                                            <Users className="size-8 mx-auto text-slate-300 mb-2" />
+                                            <p className="font-semibold text-sm text-slate-600">Tidak ada siswa binaan yang ditemukan.</p>
+                                            <p className="text-xs text-slate-400 mt-0.5">Siswa binaan akan muncul setelah ditugaskan oleh Admin.</p>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    students.map((student) => {
+                                        const waUrl = formatWhatsAppUrl(student.phone);
+                                        const profileHref = `/students/${student.slug || student.id}`;
 
-                            return (
-                                <div
-                                    key={student.id}
-                                    className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs hover-card-elevate hover:border-emerald-400"
-                                >
-                                    {/* Top: Avatar, Name, NIS */}
-                                    <div>
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                {/* Avatar */}
-                                                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-[#008953] font-bold text-sm border border-emerald-200/80 shadow-2xs group-hover:bg-[#008953] group-hover:text-white transition-colors">
-                                                    {student.avatar_url ? (
-                                                        <img
-                                                            src={student.avatar_url}
-                                                            alt={student.name}
-                                                            className="h-full w-full rounded-xl object-cover"
-                                                        />
-                                                    ) : (
-                                                        student.name
-                                                            .split(' ')
-                                                            .map((n) => n[0])
-                                                            .slice(0, 2)
-                                                            .join('')
-                                                            .toUpperCase()
-                                                    )}
-                                                </div>
+                                        return (
+                                            <tr key={student.id} className="hover:bg-slate-50/70 transition">
+                                                {/* Siswa */}
+                                                <td className="px-5 py-3.5 align-middle">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-[#008953] font-bold text-xs border border-emerald-200/80 shadow-2xs">
+                                                            {student.avatar_url ? (
+                                                                <img
+                                                                    src={student.avatar_url}
+                                                                    alt={student.name}
+                                                                    className="h-full w-full rounded-xl object-cover"
+                                                                />
+                                                            ) : (
+                                                                student.name
+                                                                    .split(' ')
+                                                                    .map((n) => n[0])
+                                                                    .slice(0, 2)
+                                                                    .join('')
+                                                                    .toUpperCase()
+                                                            )}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <Link
+                                                                href={profileHref}
+                                                                className="font-bold text-slate-900 hover:text-[#008953] transition-colors truncate block text-xs sm:text-sm"
+                                                            >
+                                                                {student.name}
+                                                            </Link>
+                                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                                {student.class_name && (
+                                                                    <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.2 text-[9px] font-bold text-[#008953] border border-emerald-200">
+                                                                        {student.class_name}
+                                                                    </span>
+                                                                )}
+                                                                <span className="text-[11px] font-mono text-slate-400">
+                                                                    NIS: {student.nis_nip || '-'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
 
-                                                {/* Name & NIS */}
-                                                <div className="min-w-0">
-                                                    <Link
-                                                        href={profileHref}
-                                                        className="font-bold text-sm text-slate-900 group-hover:text-[#008953] transition-colors truncate block"
-                                                    >
-                                                        {student.name}
-                                                    </Link>
-                                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                                        {student.class_name && (
-                                                            <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.2 text-[10px] font-bold text-[#008953] border border-emerald-200">
-                                                                {student.class_name}
-                                                            </span>
-                                                        )}
-                                                        <span className="text-[11px] font-mono text-slate-400">
-                                                            NIS: {student.nis_nip || '-'}
+                                                {/* Tempat DUDI */}
+                                                <td className="px-5 py-3.5 align-middle">
+                                                    <div className="flex items-center gap-1.5 text-xs text-slate-700">
+                                                        <Building2 className="size-3.5 text-slate-400 shrink-0" />
+                                                        <span className="font-semibold truncate max-w-[200px]">
+                                                            {student.company?.name || (
+                                                                <span className="italic text-slate-400 font-normal">Belum Ditempatkan</span>
+                                                            )}
                                                         </span>
                                                     </div>
-                                                </div>
-                                            </div>
+                                                </td>
 
-                                            {/* Link arrow */}
-                                            <Link
-                                                href={profileHref}
-                                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#008953] hover:bg-emerald-50 transition"
-                                                title="Lihat Profil"
-                                            >
-                                                <ArrowUpRight className="size-4" />
-                                            </Link>
-                                        </div>
+                                                {/* Presensi Hari Ini */}
+                                                <td className="px-5 py-3.5 align-middle">
+                                                    {getAttendanceStatusBadge(student.today_attendance)}
+                                                </td>
 
-                                        {/* Company Placement */}
-                                        <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-600">
-                                            <Building2 className="size-3.5 text-slate-400 shrink-0" />
-                                            <span className="truncate">
-                                                {student.company?.name ? (
-                                                    <strong>{student.company.name}</strong>
-                                                ) : (
-                                                    <span className="italic text-slate-400">Belum Ditempatkan</span>
-                                                )}
-                                            </span>
-                                        </div>
+                                                {/* Rekap Log */}
+                                                <td className="px-5 py-3.5 align-middle">
+                                                    <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+                                                        <span>Presensi: <strong className="text-slate-900 font-bold">{student.stats.total_attendances}</strong></span>
+                                                        <span className="text-slate-300">•</span>
+                                                        <span>Jurnal: <strong className="text-slate-900 font-bold">{student.stats.total_journals}</strong></span>
+                                                    </div>
+                                                </td>
 
-                                        {/* Today Status Badge */}
-                                        <div className="mt-2.5">
-                                            {getAttendanceStatusBadge(student.today_attendance)}
-                                        </div>
-                                    </div>
-
-                                    {/* Bottom: Metrics & Action Buttons */}
-                                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-3 text-[11px] text-slate-500 font-medium">
-                                            <span>Presensi: <strong>{student.stats.total_attendances}</strong></span>
-                                            <span>•</span>
-                                            <span>Jurnal: <strong>{student.stats.total_journals}</strong></span>
-                                        </div>
-
-                                        <div className="flex items-center gap-1.5">
-                                            {waUrl && (
-                                                <Button
-                                                    asChild
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-7 px-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 border-emerald-200 rounded-lg cursor-pointer"
-                                                >
-                                                    <a href={waUrl} target="_blank" rel="noopener noreferrer" title="Chat WhatsApp">
-                                                        <MessageCircle className="size-3 text-emerald-600" />
-                                                        <span className="hidden sm:inline">WA</span>
-                                                    </a>
-                                                </Button>
-                                            )}
-
-                                            <Button
-                                                asChild
-                                                size="sm"
-                                                className="h-7 px-2.5 bg-[#008953] hover:bg-[#007346] text-white text-[11px] font-bold rounded-lg cursor-pointer"
-                                            >
-                                                <Link href={profileHref}>
-                                                    Profil
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })
-                    )}
+                                                {/* Aksi & Kontak */}
+                                                <td className="px-5 py-3.5 align-middle text-right">
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        {waUrl && (
+                                                            <a
+                                                                href={waUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="size-8 inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-[#008953] hover:text-white transition shadow-2xs"
+                                                                title={`Chat WhatsApp ${student.name}`}
+                                                            >
+                                                                <MessageCircle className="size-3.5" />
+                                                            </a>
+                                                        )}
+                                                        <Button
+                                                            asChild
+                                                            size="sm"
+                                                            className="h-8 px-3 bg-[#008953] hover:bg-[#007346] text-white text-xs font-bold rounded-xl cursor-pointer"
+                                                        >
+                                                            <Link href={profileHref}>
+                                                                Profil
+                                                            </Link>
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </>

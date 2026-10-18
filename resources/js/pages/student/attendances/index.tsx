@@ -101,15 +101,12 @@ export default function StudentAttendanceHistoryIndex({
             <Head title="Riwayat Presensi - Halo-Smakmal" />
 
             <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto w-full">
-                {/* 1. Header Section (Clean text matching admin style) */}
+                {/* 1. Header Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
                             Riwayat Presensi PKL
                         </h1>
-                        <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                            Rekapitulasi log kehadiran harian, waktu check-in & check-out, foto selfie, dan verifikasi radius kantor.
-                        </p>
                     </div>
 
                     {company && (
@@ -120,36 +117,30 @@ export default function StudentAttendanceHistoryIndex({
                     )}
                 </div>
 
-                {/* 2. Top Stats Bar & Operational Info */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* 2. Top Stats Bar (Clean & Thin with Batas Masuk & Toleransi) */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-xs">
                     <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-                        <span className="rounded-xl bg-white px-3.5 py-2 text-slate-700 border border-slate-200/80 shadow-2xs">
+                        <span className="rounded-xl bg-slate-50 px-3 py-1.5 text-slate-700 border border-slate-200/80">
                             Total: <strong className="text-slate-900 font-bold">{stats.total_presensi} Hari</strong>
                         </span>
-                        <span className="rounded-xl bg-emerald-50 px-3.5 py-2 text-[#008953] border border-emerald-200/80">
+                        <span className="rounded-xl bg-emerald-50 px-3 py-1.5 text-[#008953] border border-emerald-200/80">
                             Hadir Tepat: <strong className="font-bold">{stats.total_hadir}</strong>
                         </span>
                         {stats.total_terlambat > 0 && (
-                            <span className="rounded-xl bg-amber-50 px-3.5 py-2 text-amber-700 border border-amber-200/80">
+                            <span className="rounded-xl bg-amber-50 px-3 py-1.5 text-amber-700 border border-amber-200/80">
                                 Terlambat: <strong className="font-bold">{stats.total_terlambat}</strong>
                             </span>
                         )}
-                        <span className="rounded-xl bg-white px-3.5 py-2 text-slate-600 border border-slate-200/80 shadow-2xs">
+                        <span className="rounded-xl bg-slate-50 px-3 py-1.5 text-slate-600 border border-slate-200/80">
                             Ketepatan: <strong className="text-[#008953] font-bold">{stats.punctuality_rate}%</strong>
                         </span>
                     </div>
 
                     {company && (
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium">
-                            <span className="inline-flex items-center gap-1.5">
-                                <Clock className="size-3.5 text-[#008953]" />
-                                <span>Batas Masuk: <strong className="text-slate-700">{company.check_in_end?.slice(0, 5) || '08:00'} WIB</strong></span>
-                            </span>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium self-start md:self-auto shrink-0">
+                            <span>Batas Masuk: <strong className="text-slate-700 font-bold">{company.check_in_end?.slice(0, 5) || '08:05'} WIB</strong></span>
                             <span className="text-slate-300">•</span>
-                            <span className="inline-flex items-center gap-1.5">
-                                <ShieldCheck className="size-3.5 text-[#008953]" />
-                                <span>Toleransi: <strong className="text-slate-700">{company.radius_meters}m</strong></span>
-                            </span>
+                            <span>Toleransi: <strong className="text-slate-700 font-bold">{company.radius_meters || 100}m</strong></span>
                         </div>
                     )}
                 </div>
@@ -205,9 +196,6 @@ export default function StudentAttendanceHistoryIndex({
                                                 <div className="font-bold text-slate-900 leading-snug">
                                                     {att.date_formatted}
                                                 </div>
-                                                <div className="text-[11px] font-mono text-slate-400 mt-0.5">
-                                                    {att.date}
-                                                </div>
                                             </td>
 
                                             {/* Jam Masuk */}
@@ -239,22 +227,26 @@ export default function StudentAttendanceHistoryIndex({
 
                                             {/* Status Kehadiran */}
                                             <td className="px-3 py-3.5 sm:px-4 sm:py-4">
-                                                <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold border ${
+                                                <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${
                                                     att.status === 'hadir'
-                                                        ? 'bg-emerald-50 text-[#008953] border-emerald-200'
+                                                        ? 'text-[#008953]'
                                                         : att.status === 'terlambat'
-                                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                                                        ? 'text-amber-600'
+                                                        : att.status === 'izin'
+                                                        ? 'text-blue-600'
+                                                        : att.status === 'sakit'
+                                                        ? 'text-purple-600'
+                                                        : 'text-rose-600'
                                                 }`}>
                                                     {att.status === 'hadir' ? (
                                                         <>
-                                                            <CheckCircle2 className="size-3.5 shrink-0" />
                                                             <span>Hadir Tepat</span>
+                                                            <CheckCircle2 className="size-3.5 shrink-0 text-[#008953]" />
                                                         </>
                                                     ) : att.status === 'terlambat' ? (
                                                         <>
-                                                            <Clock className="size-3.5 shrink-0" />
                                                             <span>Terlambat</span>
+                                                            <Clock className="size-3.5 shrink-0 text-amber-500" />
                                                         </>
                                                     ) : (
                                                         <span>{att.status === 'izin' ? 'Izin' : att.status === 'sakit' ? 'Sakit' : att.status}</span>
@@ -266,9 +258,12 @@ export default function StudentAttendanceHistoryIndex({
                                             <td className="px-3 py-3.5 sm:px-4 sm:py-4 hidden md:table-cell">
                                                 {att.check_in_distance !== null ? (
                                                     <div className="flex items-center gap-1.5 text-xs">
-                                                        <span className={`size-2 shrink-0 rounded-full ${att.is_in_radius ? 'bg-[#008953]' : 'bg-amber-500'}`} />
-                                                        <span className={att.is_in_radius ? 'font-semibold text-slate-700' : 'font-semibold text-amber-700'}>
-                                                            {att.is_in_radius ? 'Dalam Radius' : 'Luar Radius'} ({att.check_in_distance}m)
+                                                        <span className={`size-2 shrink-0 rounded-full ${att.is_in_radius ? 'bg-[#008953]' : 'bg-rose-500'}`} />
+                                                        <span className={`font-semibold ${att.is_in_radius ? 'text-[#008953]' : 'text-rose-600'}`}>
+                                                            {att.is_in_radius ? 'Dalam Radius' : 'Luar Radius'}
+                                                        </span>
+                                                        <span className="text-[11px] text-slate-400 font-mono">
+                                                            ({att.check_in_distance >= 1000 ? `${(att.check_in_distance / 1000).toFixed(1)} km` : `${att.check_in_distance}m`})
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -290,9 +285,9 @@ export default function StudentAttendanceHistoryIndex({
                                                                 checkOutTime: att.check_out_time ? `${att.check_out_time} WIB` : undefined,
                                                             })
                                                         }
-                                                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 sm:px-3 text-xs font-bold text-slate-700 hover:bg-[#008953] hover:text-white hover:border-[#008953] transition-all shadow-2xs cursor-pointer"
+                                                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 sm:px-3 text-xs font-bold text-slate-700 hover:bg-[#008953] hover:text-white hover:border-[#008953] transition-all shadow-2xs cursor-pointer group"
                                                     >
-                                                        <Camera className="size-3.5 shrink-0" />
+                                                        <Camera className="size-3.5 shrink-0 text-[#008953] group-hover:text-white transition-colors" />
                                                         <span>Foto</span>
                                                     </button>
                                                 ) : (

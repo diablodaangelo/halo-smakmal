@@ -4,6 +4,7 @@ import {
     BookOpen,
     Building2,
     CalendarCheck,
+    Camera,
     CheckCircle2,
     Clock,
     Edit2,
@@ -32,6 +33,8 @@ import { Label } from '@/components/ui/label';
 interface Journal {
     id: number;
     day_number: number;
+    date?: string | null;
+    date_formatted?: string;
     work_summary: string;
     obstacles: string | null;
     work_photo_url: string | null;
@@ -65,6 +68,7 @@ export default function StudentJournalsIndex({
 }: Props) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [selectedJournalDetail, setSelectedJournalDetail] = useState<Journal | null>(null);
 
     // Form states
     const [selectedDayNumber, setSelectedDayNumber] = useState<number>(stats?.next_day || 1);
@@ -154,9 +158,6 @@ export default function StudentJournalsIndex({
                         <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
                             Jurnal Harian PKL
                         </h1>
-                        <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                            Buku log pencatatan kegiatan dan pekerjaan harian PKL (Hari Ke-1 s/d Hari Ke-120).
-                        </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
@@ -205,121 +206,121 @@ export default function StudentJournalsIndex({
                     </div>
                 )}
 
-                {/* 3. Main Journal Table (Exact Green Table Header like Riwayat Presensi) */}
+                {/* 3. Main Journal Table (Tipis, Fit 100%, No Side Scroll, Row Clickable) */}
                 <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-[#008953] text-white">
-                                    <th className="px-4 py-3.5 sm:px-5 sm:py-4 text-xs font-bold uppercase tracking-wider rounded-tl-xl w-28 sm:w-32">
-                                        Hari PKL
-                                    </th>
-                                    <th className="px-3 py-3.5 sm:px-4 sm:py-4 text-xs font-bold uppercase tracking-wider">
-                                        Kegiatan / Pekerjaan
-                                    </th>
-                                    <th className="px-3 py-3.5 sm:px-4 sm:py-4 text-xs font-bold uppercase tracking-wider hidden sm:table-cell w-48 sm:w-56">
-                                        Kendala
-                                    </th>
-                                    <th className="px-3 py-3.5 sm:px-4 sm:py-4 text-xs font-bold uppercase tracking-wider text-center w-24">
-                                        Foto
-                                    </th>
-                                    <th className="px-3 py-3.5 sm:px-4 sm:py-4 text-xs font-bold uppercase tracking-wider hidden md:table-cell w-56 sm:w-64">
-                                        Catatan Guru
-                                    </th>
-                                    <th className="px-4 py-3.5 sm:px-5 sm:py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-xl w-24">
-                                        Aksi
-                                    </th>
+                    <table className="w-full table-fixed text-left border-collapse">
+                        <thead>
+                            <tr className="bg-[#008953] text-white">
+                                <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-wider rounded-tl-xl w-[13%]">
+                                    Hari PKL
+                                </th>
+                                <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-wider w-[17%]">
+                                    Tanggal
+                                </th>
+                                <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-wider w-[32%]">
+                                    Kegiatan / Pekerjaan
+                                </th>
+                                <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-wider w-[16%]">
+                                    Kendala
+                                </th>
+                                <th className="px-3 py-3.5 text-xs font-bold uppercase tracking-wider w-[10%] text-center">
+                                    Foto
+                                </th>
+                                <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-wider rounded-tr-xl w-[12%]">
+                                    Catatan Guru
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700 font-medium">
+                            {(!journals || journals.length === 0) ? (
+                                <tr>
+                                    <td colSpan={6} className="py-16 text-center text-slate-400">
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <div className="size-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                                <FileText className="size-6" />
+                                            </div>
+                                            <p className="text-sm font-bold text-slate-700">
+                                                Belum ada catatan jurnal harian
+                                            </p>
+                                            <p className="text-xs text-slate-400">
+                                                Klik tombol "Tulis Jurnal" untuk mencatat kegiatan PKL Hari Ke-1.
+                                            </p>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700 font-medium">
-                                {(!journals || journals.length === 0) ? (
-                                    <tr>
-                                        <td colSpan={6} className="py-16 text-center text-slate-400">
-                                            <div className="flex flex-col items-center justify-center gap-2">
-                                                <div className="size-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                                    <FileText className="size-6" />
-                                                </div>
-                                                <p className="text-sm font-bold text-slate-700">
-                                                    Belum ada catatan jurnal harian
-                                                </p>
-                                                <p className="text-xs text-slate-400">
-                                                    Klik tombol "Tulis Jurnal" untuk mencatat kegiatan PKL Hari Ke-1.
-                                                </p>
+                            ) : (
+                                journals.map((j) => (
+                                    <tr
+                                        key={j.id}
+                                        onClick={() => setSelectedJournalDetail(j)}
+                                        className="hover:bg-slate-50/80 cursor-pointer transition group"
+                                        title="Klik baris untuk melihat detail lengkap jurnal & foto"
+                                    >
+                                        {/* Hari PKL */}
+                                        <td className="px-4 py-3 align-middle">
+                                            <span className="inline-flex items-center rounded-lg bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 text-[11px] font-bold text-[#008953]">
+                                                Hari Ke-{j.day_number}
+                                            </span>
+                                        </td>
+
+                                        {/* Tanggal */}
+                                        <td className="px-4 py-3 align-middle text-slate-800 font-medium text-xs truncate">
+                                            {j.date_formatted || '-'}
+                                        </td>
+
+                                        {/* Kegiatan / Pekerjaan (Truncated Tipis) */}
+                                        <td className="px-4 py-3 align-middle">
+                                            <div className="truncate text-xs text-slate-800 font-medium group-hover:text-[#008953] transition-colors" title={j.work_summary}>
+                                                {j.work_summary}
                                             </div>
                                         </td>
-                                    </tr>
-                                ) : (
-                                    journals.map((j) => (
-                                        <tr key={j.id} className="hover:bg-slate-50/70 transition-colors">
-                                            {/* Hari PKL */}
-                                            <td className="px-4 py-3.5 sm:px-5 sm:py-4 align-top">
-                                                <span className="inline-flex items-center rounded-lg bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 text-xs font-bold text-[#008953]">
-                                                    Hari Ke-{j.day_number}
-                                                </span>
-                                            </td>
 
-                                            {/* Ringkasan Pekerjaan */}
-                                            <td className="px-3 py-3.5 sm:px-4 sm:py-4 align-top">
-                                                <p className="text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-line font-medium">
-                                                    {j.work_summary}
-                                                </p>
-                                            </td>
+                                        {/* Kendala (Truncated) */}
+                                        <td className="px-4 py-3 align-middle">
+                                            {j.obstacles ? (
+                                                <div className="truncate text-xs text-amber-700 font-medium" title={j.obstacles}>
+                                                    {j.obstacles}
+                                                </div>
+                                            ) : (
+                                                <span className="text-slate-400 text-xs">-</span>
+                                            )}
+                                        </td>
 
-                                            {/* Kendala */}
-                                            <td className="px-3 py-3.5 sm:px-4 sm:py-4 align-top hidden sm:table-cell">
-                                                {j.obstacles ? (
-                                                    <div className="rounded-xl bg-amber-50/80 p-2.5 text-xs text-amber-900 border border-amber-200/70 leading-relaxed font-medium">
-                                                        {j.obstacles}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-400 text-xs italic">-</span>
-                                                )}
-                                            </td>
-
-                                            {/* Foto Dokumentasi */}
-                                            <td className="px-3 py-3.5 sm:px-4 sm:py-4 align-top text-center">
-                                                {j.work_photo_url ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setPreviewImage(j.work_photo_url)}
-                                                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-[#008953] hover:text-white hover:border-[#008953] transition-all shadow-2xs cursor-pointer"
-                                                    >
-                                                        <Camera className="size-3.5 shrink-0" />
-                                                        <span>Foto</span>
-                                                    </button>
-                                                ) : (
-                                                    <span className="text-slate-400 text-xs">-</span>
-                                                )}
-                                            </td>
-
-                                            {/* Catatan Guru Pembimbing */}
-                                            <td className="px-3 py-3.5 sm:px-4 sm:py-4 align-top hidden md:table-cell">
-                                                {j.mentor_notes ? (
-                                                    <div className="rounded-xl bg-emerald-50/80 p-2.5 text-xs text-emerald-950 border border-emerald-200/70 leading-relaxed font-medium">
-                                                        {j.mentor_notes}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-400 text-xs italic">Belum ada catatan</span>
-                                                )}
-                                            </td>
-
-                                            {/* Aksi Edit */}
-                                            <td className="px-4 py-3.5 sm:px-5 sm:py-4 align-top text-right">
+                                        {/* Foto Dokumentasi */}
+                                        <td className="px-3 py-3 align-middle text-center">
+                                            {j.work_photo_url ? (
                                                 <button
                                                     type="button"
-                                                    onClick={() => openFormForDay(j.day_number)}
-                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all shadow-2xs cursor-pointer"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPreviewImage(j.work_photo_url);
+                                                    }}
+                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1 text-xs font-bold text-slate-700 hover:bg-[#008953] hover:text-white hover:border-[#008953] transition shadow-2xs cursor-pointer group/btn"
+                                                    title="Lihat foto kegiatan"
                                                 >
-                                                    <Edit2 className="size-3.5 shrink-0" />
-                                                    <span>Edit</span>
+                                                    <Camera className="size-3.5 text-[#008953] group-hover/btn:text-white transition-colors" />
+                                                    <span>Foto</span>
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                            ) : (
+                                                <span className="text-slate-400 text-xs">-</span>
+                                            )}
+                                        </td>
+
+                                        {/* Catatan Guru Pembimbing */}
+                                        <td className="px-4 py-3 align-middle">
+                                            {j.mentor_notes ? (
+                                                <div className="truncate text-xs text-[#008953] font-medium" title={j.mentor_notes}>
+                                                    {j.mentor_notes}
+                                                </div>
+                                            ) : (
+                                                <span className="text-slate-400 text-xs italic">Belum ada</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -460,6 +461,118 @@ export default function StudentJournalsIndex({
                     {previewImage && (
                         <div className="overflow-hidden rounded-xl bg-slate-900 mt-2">
                             <img src={previewImage} alt="Dokumentasi" className="h-auto w-full object-cover max-h-[70vh]" />
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal Detail Jurnal Lengkap (Dibuka saat Baris Tabel Diklik) */}
+            <Dialog open={!!selectedJournalDetail} onOpenChange={(open) => !open && setSelectedJournalDetail(null)}>
+                <DialogContent className="sm:max-w-xl rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <div className="flex items-center gap-2">
+                            <span className="inline-flex rounded-lg bg-emerald-50 border border-emerald-200/70 text-[#008953] px-2.5 py-0.5 text-xs font-bold">
+                                Hari Ke-{selectedJournalDetail?.day_number}
+                            </span>
+                            <span className="text-xs text-slate-500 font-medium">
+                                {selectedJournalDetail?.date_formatted || '-'}
+                            </span>
+                        </div>
+                        <DialogTitle className="text-base font-bold text-slate-900 pt-1">
+                            Detail Jurnal Kegiatan PKL
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500">
+                            {user?.name} {user?.company?.name ? `• ${user.company.name}` : ''}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedJournalDetail && (
+                        <div className="space-y-4 pt-2">
+                            {/* 1. Kegiatan / Pekerjaan */}
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Kegiatan / Pekerjaan yang Dilakukan
+                                </Label>
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                                    {selectedJournalDetail.work_summary}
+                                </div>
+                            </div>
+
+                            {/* 2. Kendala */}
+                            {selectedJournalDetail.obstacles && (
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-bold uppercase tracking-wider text-amber-700">
+                                        Kendala yang Dihadapi
+                                    </Label>
+                                    <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs sm:text-sm text-amber-900 leading-relaxed whitespace-pre-line font-medium">
+                                        {selectedJournalDetail.obstacles}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 3. Foto Dokumentasi */}
+                            {selectedJournalDetail.work_photo_url && (
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Foto Dokumentasi Kegiatan
+                                    </Label>
+                                    <div
+                                        onClick={() => setPreviewImage(selectedJournalDetail.work_photo_url)}
+                                        className="overflow-hidden rounded-xl border border-slate-200 aspect-16/9 bg-slate-900 cursor-pointer group relative max-h-64 flex items-center justify-center"
+                                        title="Klik untuk memperbesar foto"
+                                    >
+                                        <img
+                                            src={selectedJournalDetail.work_photo_url}
+                                            alt="Foto Dokumentasi"
+                                            className="h-full w-full object-cover group-hover:opacity-90 transition"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1.5">
+                                            <Eye className="size-4" />
+                                            <span>Klik untuk Perbesar</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 4. Catatan Pembimbing */}
+                            <div className="space-y-1.5 pt-1">
+                                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Catatan Guru Pembimbing
+                                </Label>
+                                <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-3.5 text-xs sm:text-sm text-emerald-950 leading-relaxed font-medium">
+                                    {selectedJournalDetail.mentor_notes ? (
+                                        <p className="whitespace-pre-line">{selectedJournalDetail.mentor_notes}</p>
+                                    ) : (
+                                        <span className="text-slate-400 italic">Belum ada catatan feedback dari guru pembimbing.</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Modal Footer with Primary CTA Edit Button */}
+                            <DialogFooter className="pt-3 gap-2 flex-col-reverse sm:flex-row sm:justify-between border-t border-slate-100 mt-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setSelectedJournalDetail(null)}
+                                    size="sm"
+                                    className="text-xs rounded-xl border-slate-200 cursor-pointer w-full sm:w-auto"
+                                >
+                                    Tutup
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={() => {
+                                        const dayNum = selectedJournalDetail.day_number;
+                                        setSelectedJournalDetail(null);
+                                        openFormForDay(dayNum);
+                                    }}
+                                    size="sm"
+                                    className="bg-[#008953] hover:bg-[#007346] text-white text-xs font-bold gap-1.5 rounded-xl cursor-pointer w-full sm:w-auto shadow-xs"
+                                >
+                                    <Edit2 className="size-3.5" />
+                                    <span>Edit Jurnal</span>
+                                </Button>
+                            </DialogFooter>
                         </div>
                     )}
                 </DialogContent>

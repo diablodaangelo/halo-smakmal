@@ -26,9 +26,12 @@ class JournalController extends Controller
             ->get()
             ->map(function ($journal, $idx) {
                 $dayNum = $journal->day_number ?: ($idx + 1);
+                $dateObj = $journal->date ? Carbon::parse($journal->date) : ($journal->created_at ? Carbon::parse($journal->created_at) : null);
                 return [
                     'id' => $journal->id,
                     'day_number' => (int) $dayNum,
+                    'date' => $dateObj ? $dateObj->format('Y-m-d') : null,
+                    'date_formatted' => $dateObj ? $dateObj->isoFormat('dddd, D MMMM Y') : '-',
                     'work_summary' => $journal->work_summary,
                     'obstacles' => $journal->obstacles,
                     'work_photo_url' => $journal->work_photo ? asset('storage/' . $journal->work_photo) : null,

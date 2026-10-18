@@ -6,7 +6,6 @@ import {
     LayoutDashboard,
     LogOut,
     ShieldAlert,
-    UserCheck,
     Users,
 } from 'lucide-react';
 import React from 'react';
@@ -36,12 +35,6 @@ export default function ErrorPage({ status = 403, message }: Props) {
             dashboardUrl: '/teacher/attendances',
             dashboardLabel: 'Ke Dashboard Guru',
             icon: GraduationCap,
-        },
-        pembimbing_dudi: {
-            label: 'Pembimbing DUDI',
-            dashboardUrl: '/dashboard',
-            dashboardLabel: 'Ke Dashboard DUDI',
-            icon: UserCheck,
         },
         siswa: {
             label: 'Siswa PKL',

@@ -138,26 +138,26 @@ export default function TeacherPrayersIndex({
         switch (status) {
             case 'berjamaah':
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 text-xs font-bold text-[#008953]">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#008953]">
+                        <span>Berjamaah</span>
                         <CheckCircle2 className="size-3.5 text-[#008953]" />
-                        Berjamaah
                     </span>
                 );
             case 'munfarid':
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 border border-blue-200/80 px-2.5 py-1 text-xs font-bold text-blue-700">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600">
                         Munfarid (Sendiri)
                     </span>
                 );
             case 'udzur':
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-purple-50 border border-purple-200/80 px-2.5 py-1 text-xs font-bold text-purple-700">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600">
                         Udzur Syar'i
                     </span>
                 );
             default:
                 return (
-                    <span className="inline-flex rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                         {status}
                     </span>
                 );
@@ -175,9 +175,6 @@ export default function TeacherPrayersIndex({
                         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                             Review Salat Siswa
                         </h1>
-                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                            Monitoring pelaksanaan ibadah salat fardhu (Dzuhur & Ashar) siswa binaan selama beraktivitas di lokasi PKL.
-                        </p>
                     </div>
 
                     <div className="flex items-center gap-2 self-start sm:self-auto text-xs font-semibold">
@@ -188,22 +185,22 @@ export default function TeacherPrayersIndex({
                 </div>
 
                 {/* Clean Filter & Student Selector Bar */}
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-4 shadow-xs">
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-3.5 shadow-xs">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                        <div className="flex flex-wrap items-center gap-2.5 flex-1">
+                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 flex-1 min-w-0">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 shrink-0">
-                                Pilih Siswa:
+                                PILIH SISWA:
                             </span>
 
                             {/* Dropdown Pilih Siswa */}
                             <select
                                 value={selectedStudentId ?? ''}
                                 onChange={(e) => handleSelectStudent(Number(e.target.value))}
-                                className="h-10 px-3.5 py-1.5 bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer transition min-w-[240px] flex-1 sm:flex-initial"
+                                className="h-10 px-3 py-1.5 bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer transition min-w-[170px] max-w-[240px] truncate shrink-0"
                             >
                                 {students.map((s) => (
                                     <option key={s.id} value={s.id}>
-                                        {s.name} {s.class_name ? `(${s.class_name})` : ''} - {s.company?.name || 'Belum Diplot'} ({s.stats?.total_prayers ?? 0} log)
+                                        {s.name} {s.class_name ? `(${s.class_name})` : ''}
                                     </option>
                                 ))}
                             </select>
@@ -211,7 +208,7 @@ export default function TeacherPrayersIndex({
                             {activeStudent && (
                                 <Link
                                     href={`/students/${activeStudent.slug || activeStudent.id}`}
-                                    className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs"
+                                    className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-emerald-500 hover:bg-emerald-50 hover:text-[#008953] transition shadow-2xs shrink-0"
                                     title="Lihat Profil Siswa"
                                 >
                                     <Eye className="size-4" />
@@ -298,22 +295,13 @@ export default function TeacherPrayersIndex({
                                             {/* Tanggal */}
                                             <td className="px-5 py-3.5 align-middle">
                                                 <div className="font-semibold text-slate-900">{log.date_formatted}</div>
-                                                <div className="text-[11px] font-mono text-slate-400">{log.date}</div>
                                             </td>
 
                                             {/* Jenis Salat */}
                                             <td className="px-5 py-3.5 align-middle">
-                                                {log.prayer_type === 'dzuhur' ? (
-                                                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200/70 px-2.5 py-1 text-xs font-bold text-amber-700">
-                                                        <Sun className="size-3.5 text-amber-500" />
-                                                        <span>Dzuhur</span>
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200/70 px-2.5 py-1 text-xs font-bold text-indigo-700">
-                                                        <Moon className="size-3.5 text-indigo-500" />
-                                                        <span>Ashar</span>
-                                                    </span>
-                                                )}
+                                                <span className="font-bold text-slate-900 capitalize">
+                                                    {log.prayer_type}
+                                                </span>
                                             </td>
 
                                             {/* Status */}

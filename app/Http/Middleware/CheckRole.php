@@ -28,7 +28,6 @@ class CheckRole
                 'admin' => 'Administrator',
                 'guru_pembimbing' => 'Guru Pembimbing',
                 'siswa' => 'Siswa PKL',
-                'pembimbing_dudi' => 'Pembimbing DUDI',
                 default => $r,
             }, $roles);
 

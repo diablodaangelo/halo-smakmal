@@ -20,8 +20,6 @@ class CompanyController extends Controller
 
         $companies = Company::withCount(['users as students_count' => function ($query) {
             $query->where('role', 'siswa');
-        }, 'users as mentors_count' => function ($query) {
-            $query->where('role', 'pembimbing_dudi');
         }])
         ->when($search, function ($query, $search) {
             $query->where('name', 'like', "%{$search}%")

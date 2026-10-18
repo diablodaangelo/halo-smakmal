@@ -31,7 +31,7 @@ interface DashboardProps {
         name: string;
         nickname?: string | null;
         email: string;
-        role: 'admin' | 'guru_pembimbing' | 'pembimbing_dudi' | 'siswa';
+        role: 'admin' | 'guru_pembimbing' | 'siswa';
         nis_nip?: string;
         class_name?: string | null;
         company?: {
@@ -53,7 +53,7 @@ interface DashboardProps {
         } | null;
     };
     today_date: string;
-    role: 'admin' | 'guru_pembimbing' | 'pembimbing_dudi' | 'siswa';
+    role: 'admin' | 'guru_pembimbing' | 'siswa';
     stats?: {
         has_checked_in?: boolean;
         has_checked_out?: boolean;
@@ -357,30 +357,21 @@ export default function Dashboard({
 
                         <div>
                             {stats?.has_permission ? (
-                                <span
-                                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold ${
-                                        stats?.permission_is_approved === true
-                                            ? 'bg-white text-[#008953] shadow-xs'
-                                            : stats?.permission_is_approved === false
-                                            ? 'bg-rose-500 text-white'
-                                            : 'bg-amber-400 text-amber-950 shadow-xs'
-                                    }`}
-                                >
-                                    <span
-                                        className={`size-2 rounded-full ${
-                                            stats?.permission_is_approved === true
-                                                ? 'bg-[#008953]'
-                                                : stats?.permission_is_approved === false
-                                                ? 'bg-white'
-                                                : 'bg-amber-950'
-                                        }`}
-                                    />
-                                    {stats?.permission_is_approved === true
-                                        ? `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} Disetujui`
-                                        : stats?.permission_is_approved === false
-                                        ? `Izin Ditolak`
-                                        : `${stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} (Menunggu Persetujuan)`}
-                                </span>
+                                stats?.permission_is_approved === true ? (
+                                    <span className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1 text-xs font-bold text-[#008953] shadow-xs">
+                                        <span className="size-2 rounded-full bg-[#008953]" />
+                                        {stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} Disetujui
+                                    </span>
+                                ) : stats?.permission_is_approved === false ? (
+                                    <span className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500 px-3 py-1 text-xs font-bold text-white shadow-xs">
+                                        <span className="size-2 rounded-full bg-white" />
+                                        Izin Ditolak
+                                    </span>
+                                ) : (
+                                    <span className="text-xs font-semibold text-white">
+                                        {stats.permission_status === 'sakit' ? 'Sakit' : 'Izin'} (Menunggu Persetujuan)
+                                    </span>
+                                )
                             ) : (
                                 <span
                                     className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold ${
@@ -439,21 +430,17 @@ export default function Dashboard({
                                             </div>
                                         </div>
                                     </div>
-                                    <span
-                                        className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold self-start sm:self-auto border ${
-                                            stats.permission_is_approved === true
-                                                ? 'bg-emerald-50 text-[#008953] border-emerald-200'
-                                                : stats.permission_is_approved === false
-                                                ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                                : 'bg-amber-50 text-amber-800 border-amber-200'
-                                        }`}
-                                    >
-                                        {stats.permission_is_approved === true
-                                            ? 'Disetujui'
-                                            : stats.permission_is_approved === false
-                                            ? 'Ditolak'
-                                            : 'Menunggu Persetujuan'}
-                                    </span>
+                                    {stats.permission_is_approved !== null && (
+                                        <span
+                                            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold self-start sm:self-auto border ${
+                                                stats.permission_is_approved === true
+                                                    ? 'bg-emerald-50 text-[#008953] border-emerald-200'
+                                                    : 'bg-rose-50 text-rose-700 border-rose-200'
+                                            }`}
+                                        >
+                                            {stats.permission_is_approved === true ? 'Disetujui' : 'Ditolak'}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="mt-3.5 text-xs text-slate-700 space-y-2">

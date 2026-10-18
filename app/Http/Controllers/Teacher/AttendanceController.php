@@ -20,7 +20,7 @@ class AttendanceController extends Controller
     {
         $teacher = $request->user();
         $studentId = $request->input('student_id');
-        $date = $request->input('date');
+        $month = $request->input('month');
         $status = $request->input('status');
 
         // Load guided students with detailed attendance stats
@@ -77,6 +77,21 @@ class AttendanceController extends Controller
             $dayMap[$att->id] = $studentDayCounters[$uId];
         }
 
+        // Calculate available months that actually have attendances recorded
+        $filteredForMonths = $studentId
+            ? $allAttendances->where('user_id', $studentId)
+            : $allAttendances;
+
+        $availableMonths = $filteredForMonths->map(function ($a) {
+            return $a->date instanceof Carbon ? $a->date->format('Y-m') : Carbon::parse($a->date)->format('Y-m');
+        })->unique()->sortDesc()->values()->map(function ($m) {
+            $c = Carbon::createFromFormat('Y-m', $m)->locale('id');
+            return [
+                'value' => $m,
+                'label' => $c->translatedFormat('F Y'),
+            ];
+        })->values();
+
         $query = Attendance::whereHas('user', function ($q) use ($teacher) {
             $q->where('mentor_teacher_id', $teacher->id);
         })->with(['user.company', 'company']);
@@ -85,8 +100,11 @@ class AttendanceController extends Controller
             $query->where('user_id', $studentId);
         }
 
-        if ($date) {
-            $query->whereDate('date', $date);
+        if ($month) {
+            $parts = explode('-', $month);
+            if (count($parts) === 2) {
+                $query->whereYear('date', (int) $parts[0])->whereMonth('date', (int) $parts[1]);
+            }
         }
 
         if ($status) {
@@ -204,9 +222,10 @@ class AttendanceController extends Controller
             'students' => $students,
             'pending_permissions' => $pendingPermissions,
             'stats' => $stats,
+            'available_months' => $availableMonths,
             'filters' => [
                 'student_id' => $studentId ? (int) $studentId : null,
-                'date' => $date,
+                'month' => $month,
                 'status' => $status,
             ],
             'today_date' => Carbon::now()->isoFormat('dddd, D MMMM Y'),

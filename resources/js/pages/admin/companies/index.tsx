@@ -42,7 +42,6 @@ interface Company {
     check_in_end: string;
     check_out_start: string;
     students_count?: number;
-    mentors_count?: number;
 }
 
 interface PaginationLink {

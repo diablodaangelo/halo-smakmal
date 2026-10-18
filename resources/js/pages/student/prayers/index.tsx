@@ -155,9 +155,6 @@ export default function StudentPrayersIndex({
                     <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                         Jadwal & Log Salat
                     </h1>
-                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                        Hari ini: <strong>{today_date}</strong>. Dokumentasikan pelaksanaan ibadah salat fardhu Dzuhur & Ashar selama beraktivitas di lokasi PKL.
-                    </p>
                 </div>
 
                 {/* Today Prayer Action Cards (2 Clean Cards: Dzuhur & Ashar) */}

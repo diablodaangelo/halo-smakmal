@@ -26,6 +26,7 @@ class AttendanceController extends Controller
         $attendances = Attendance::where('user_id', $user->id)
             ->latest('date')
             ->paginate(15)
+            ->withQueryString()
             ->through(function ($att) use ($company) {
                 $inRadius = true;
                 $checkInDistance = null;

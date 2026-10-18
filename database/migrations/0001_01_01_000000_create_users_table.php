@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'guru_pembimbing', 'pembimbing_dudi', 'siswa'])->default('siswa');
+            $table->enum('role', ['admin', 'guru_pembimbing', 'siswa'])->default('siswa');
             $table->string('nis_nip')->nullable();
             $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete();
             $table->foreignId('mentor_teacher_id')->nullable()->constrained('users')->nullOnDelete();

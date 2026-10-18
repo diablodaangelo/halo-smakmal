@@ -4,6 +4,7 @@ import {
     Building2,
     Calendar,
     CalendarCheck,
+    Camera,
     CheckCircle2,
     Clock,
     Crosshair,
@@ -29,7 +30,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 
 interface StudentItem {
     id: number;
@@ -127,8 +127,9 @@ interface Props {
     students?: StudentItem[];
     pending_permissions?: PermissionItem[];
     stats?: Stats;
+    available_months?: { value: string; label: string }[];
     filters?: {
-        date?: string;
+        month?: string;
         student_id?: number | string | null;
         status?: string;
     };
@@ -146,6 +147,7 @@ export default function TeacherAttendancesIndex({
         today_absent: 0,
         pending_permissions_count: 0,
     },
+    available_months = [],
     filters = {},
     today_date = '',
 }: Props) {
@@ -153,7 +155,7 @@ export default function TeacherAttendancesIndex({
         filters?.student_id ? Number(filters.student_id) : (students.length > 0 ? students[0].id : null)
     );
     const [selectedStatus, setSelectedStatus] = useState(filters?.status || '');
-    const [selectedDate, setSelectedDate] = useState(filters?.date || '');
+    const [selectedMonth, setSelectedMonth] = useState(filters?.month || '');
     const [selectedSelfie, setSelectedSelfie] = useState<{
         title: string;
         checkInUrl?: string | null;
@@ -188,7 +190,7 @@ export default function TeacherAttendancesIndex({
             {
                 student_id: studentId ?? undefined,
                 status: selectedStatus || undefined,
-                date: selectedDate || undefined,
+                month: selectedMonth || undefined,
             },
             { preserveState: true, replace: true }
         );
@@ -200,7 +202,7 @@ export default function TeacherAttendancesIndex({
             '/teacher/attendances',
             {
                 student_id: selectedStudentId ?? undefined,
-                date: selectedDate || undefined,
+                month: selectedMonth || undefined,
                 status: selectedStatus || undefined,
             },
             { preserveState: true }
@@ -208,7 +210,7 @@ export default function TeacherAttendancesIndex({
     };
 
     const handleReset = () => {
-        setSelectedDate('');
+        setSelectedMonth('');
         setSelectedStatus('');
         router.get(
             '/teacher/attendances',
@@ -223,33 +225,33 @@ export default function TeacherAttendancesIndex({
         switch (status) {
             case 'hadir':
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 text-xs font-bold text-[#008953]">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#008953]">
+                        <span>Hadir</span>
                         <CheckCircle2 className="size-3.5 text-[#008953]" />
-                        Hadir
                     </span>
                 );
             case 'terlambat':
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200/80 px-2.5 py-1 text-xs font-bold text-amber-700">
-                        <Clock className="size-3.5 text-amber-600" />
-                        Terlambat
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600">
+                        <span>Terlambat</span>
+                        <Clock className="size-3.5 text-amber-500" />
                     </span>
                 );
             case 'izin':
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 border border-blue-200/80 px-2.5 py-1 text-xs font-bold text-blue-700">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600">
                         Izin
                     </span>
                 );
             case 'sakit':
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-purple-50 border border-purple-200/80 px-2.5 py-1 text-xs font-bold text-purple-700">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600">
                         Sakit
                     </span>
                 );
             default:
                 return (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-rose-50 border border-rose-200/80 px-2.5 py-1 text-xs font-bold text-rose-700">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600">
                         Alpa
                     </span>
                 );
@@ -267,118 +269,21 @@ export default function TeacherAttendancesIndex({
                         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                             Presensi Siswa Binaan
                         </h1>
-                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                            Monitoring rekap presensi harian, ketepatan waktu, foto selfie, dan verifikasi geofence kantor DUDI.
-                        </p>
                     </div>
 
-                    {/* Quick Stats Badges: Hadir & Terlambat per Siswa (Hilang jika Semua Siswa dipilih) */}
+                    {/* Quick Stats: Hadir & Terlambat per Siswa (Hitam Biasa, Hilang jika Semua Siswa dipilih) */}
                     {activeStudent && (
-                        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto text-xs font-semibold">
-                            <span className="rounded-xl bg-emerald-50 px-3.5 py-2 text-[#008953] border border-emerald-200/80 shadow-2xs">
-                                Hadir: <strong className="font-bold">{activeStudent.stats?.hadir ?? 0} Kali</strong>
+                        <div className="flex items-center gap-3 self-start sm:self-auto text-xs text-slate-800 font-medium">
+                            <span>
+                                Hadir: <strong className="font-bold text-slate-900">{activeStudent.stats?.hadir ?? 0} Kali</strong>
                             </span>
-                            <span className="rounded-xl bg-amber-50 px-3.5 py-2 text-amber-700 border border-amber-200/80 shadow-2xs">
-                                Terlambat: <strong className="font-bold">{activeStudent.stats?.terlambat ?? 0} Kali</strong>
+                            <span className="text-slate-300">•</span>
+                            <span>
+                                Terlambat: <strong className="font-bold text-slate-900">{activeStudent.stats?.terlambat ?? 0} Kali</strong>
                             </span>
                         </div>
                     )}
                 </div>
-
-                {/* 1.5 Permohonan Izin / Sakit Menunggu Verifikasi */}
-                {pending_permissions && pending_permissions.length > 0 && (
-                    <div className="rounded-2xl border border-amber-200/90 bg-amber-50/70 p-4 sm:p-5 shadow-xs">
-                        <div className="flex items-center justify-between border-b border-amber-200/70 pb-3">
-                            <div className="flex items-center gap-2.5">
-                                <div className="flex size-9 items-center justify-center rounded-xl bg-amber-500 text-white font-bold shadow-xs">
-                                    <Clock className="size-5" />
-                                </div>
-                                <div>
-                                    <h2 className="text-sm sm:text-base font-bold text-slate-900">
-                                        Permohonan Izin / Sakit Menunggu Verifikasi ({pending_permissions.length} Siswa)
-                                    </h2>
-                                    <p className="text-xs text-slate-500">
-                                        Siswa binaan Anda telah mengajukan permohonan tidak masuk PKL dan membutuhkan konfirmasi guru pembimbing.
-                                    </p>
-                                </div>
-                            </div>
-                            <span className="rounded-lg bg-amber-200/80 px-2.5 py-1 text-xs font-bold text-amber-900">
-                                Perlu Verifikasi
-                            </span>
-                        </div>
-
-                        <div className="mt-3 divide-y divide-amber-200/50">
-                            {pending_permissions.map((perm) => (
-                                <div key={perm.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                    <div className="space-y-1">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span className="text-xs sm:text-sm font-bold text-slate-900">
-                                                {perm.user_name}
-                                            </span>
-                                            {perm.class_name && (
-                                                <span className="rounded-md bg-emerald-100/80 px-1.5 py-0.2 text-[10px] font-bold text-[#008953]">
-                                                    {perm.class_name}
-                                                </span>
-                                            )}
-                                            <span className={`rounded-lg px-2 py-0.5 text-xs font-bold uppercase ${
-                                                perm.status === 'sakit' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                                            }`}>
-                                                {perm.status}
-                                            </span>
-                                            <span className="text-xs text-slate-400 font-medium">
-                                                • {perm.date_formatted}
-                                            </span>
-                                        </div>
-                                        <div className="text-xs text-slate-700 bg-white/80 rounded-lg p-2.5 border border-amber-200/60">
-                                            <strong className="text-slate-900">Alasan:</strong> {perm.permission_reason || '-'}
-                                        </div>
-                                        <div className="flex items-center gap-3 text-xs text-slate-500 pt-0.5">
-                                            <span>DUDI: <strong>{perm.company_name}</strong></span>
-                                            {perm.permission_doc_url && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setSelectedPermissionDoc({
-                                                        url: perm.permission_doc_url!,
-                                                        title: `Surat Izin / Dokter - ${perm.user_name}`,
-                                                        reason: perm.permission_reason,
-                                                    })}
-                                                    className="inline-flex items-center gap-1 font-bold text-[#008953] hover:underline cursor-pointer"
-                                                >
-                                                    <FileText className="size-3.5" />
-                                                    <span>Lihat Surat Lampiran</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            disabled={verifyingId === perm.id}
-                                            onClick={() => handleVerifyPermission(perm.id, true)}
-                                            className="bg-[#008953] hover:bg-[#007346] text-white font-bold text-xs h-9 px-3.5 rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5"
-                                        >
-                                            <CheckCircle2 className="size-3.5" />
-                                            <span>Setujui</span>
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={verifyingId === perm.id}
-                                            onClick={() => handleVerifyPermission(perm.id, false)}
-                                            className="border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs h-9 px-3.5 rounded-xl cursor-pointer flex items-center gap-1.5"
-                                        >
-                                            <AlertCircle className="size-3.5 text-rose-600" />
-                                            <span>Tolak</span>
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 {/* Filter & Search Bar */}
                 <div className="rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-3.5 shadow-xs">
@@ -398,7 +303,7 @@ export default function TeacherAttendancesIndex({
                                 <option value="">Semua Siswa Binaan ({students.length})</option>
                                 {students.map((s) => (
                                     <option key={s.id} value={s.id}>
-                                        {s.name} {s.class_name ? `(${s.class_name})` : ''} - {s.company?.name || 'Belum Diplot'}
+                                        {s.name} {s.class_name ? `(${s.class_name})` : ''}
                                     </option>
                                 ))}
                             </select>
@@ -427,13 +332,19 @@ export default function TeacherAttendancesIndex({
                                 <option value="alpa">Alpa</option>
                             </select>
 
-                            {/* Input Tanggal */}
-                            <Input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="h-10 text-xs sm:text-sm w-32 shrink-0 bg-slate-50/60 border-slate-200/80 rounded-xl shadow-none"
-                            />
+                            {/* Dropdown Filter Bulan (Hanya bulan yang sudah ada catatan presensinya) */}
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                                className="h-10 px-3 py-1.5 bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer transition min-w-[130px] shrink-0"
+                            >
+                                <option value="">Semua Bulan</option>
+                                {available_months.map((m) => (
+                                    <option key={m.value} value={m.value}>
+                                        {m.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* Right: Tombol Filter & Reset di Pinggir */}
@@ -447,11 +358,11 @@ export default function TeacherAttendancesIndex({
                                 <span>Filter</span>
                             </Button>
 
-                            {(selectedStatus || selectedDate || selectedStudentId !== null) && (
+                            {(selectedStatus || selectedMonth || selectedStudentId !== null) && (
                                 <Button
                                     type="button"
                                     onClick={() => {
-                                        setSelectedDate('');
+                                        setSelectedMonth('');
                                         setSelectedStatus('');
                                         handleSelectStudent(null);
                                     }}
@@ -513,14 +424,9 @@ export default function TeacherAttendancesIndex({
                                         <tr key={att.id} className="hover:bg-slate-50/60 transition">
                                             {/* 1. Hari & Tanggal */}
                                             <td className="px-5 py-3.5 align-middle">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="inline-flex w-fit items-center rounded-lg bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 text-[11px] font-bold text-[#008953]">
-                                                        Hari Ke-{att.day_number}
-                                                    </span>
-                                                    <span className="font-semibold text-slate-900">
-                                                        {att.date_formatted}
-                                                    </span>
-                                                </div>
+                                                <span className="font-semibold text-slate-900">
+                                                    {att.date_formatted}
+                                                </span>
                                             </td>
 
                                             {/* 1b. Nama Siswa jika mode Semua */}
@@ -545,23 +451,22 @@ export default function TeacherAttendancesIndex({
 
                                             {/* 2. Status Kehadiran */}
                                             <td className="px-5 py-3.5 align-middle">
-                                                <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-1.5 flex-wrap">
                                                     {getStatusBadge(att.status)}
                                                     {(att.status === 'izin' || att.status === 'sakit') && (
                                                         att.is_approved === null ? (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 w-fit">
-                                                                <Clock className="size-2.5 text-amber-600" />
-                                                                Menunggu
+                                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600" title="Menunggu Persetujuan">
+                                                                <Clock className="size-3 text-amber-500" />
+                                                                <span>Menunggu</span>
                                                             </span>
                                                         ) : att.is_approved === true ? (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#008953] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 w-fit">
-                                                                <CheckCircle2 className="size-2.5 text-[#008953]" />
-                                                                Disetujui
+                                                            <span className="inline-flex items-center text-[#008953]" title="Disetujui">
+                                                                <CheckCircle2 className="size-4 text-[#008953]" />
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 w-fit">
-                                                                <AlertCircle className="size-2.5 text-rose-600" />
-                                                                Ditolak
+                                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600" title="Ditolak">
+                                                                <AlertCircle className="size-3 text-rose-500" />
+                                                                <span>Ditolak</span>
                                                             </span>
                                                         )
                                                     )}
@@ -586,8 +491,8 @@ export default function TeacherAttendancesIndex({
                                                 ) : att.check_out_time ? (
                                                     <span className="font-semibold text-slate-800">{att.check_out_time} WIB</span>
                                                 ) : att.is_missed_checkout ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200/80 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                                                        <AlertCircle className="size-3 text-amber-600" />
+                                                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600">
+                                                        <AlertCircle className="size-3.5 text-amber-500" />
                                                         Tidak Check-Out
                                                     </span>
                                                 ) : (
@@ -606,10 +511,11 @@ export default function TeacherAttendancesIndex({
                                                                 title: `Surat Izin / Sakit - ${att.user?.name || 'Siswa'}`,
                                                                 reason: att.permission_reason || undefined,
                                                             })}
-                                                            className="group relative size-11 rounded-xl overflow-hidden border border-amber-200 bg-amber-50 mx-auto flex items-center justify-center hover:opacity-90 shadow-2xs cursor-pointer"
+                                                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-[#008953] hover:text-white hover:border-[#008953] transition-all shadow-2xs cursor-pointer group"
                                                             title="Lihat lampiran surat izin/dokter"
                                                         >
-                                                            <FileText className="size-5 text-amber-700" />
+                                                            <FileText className="size-3.5 shrink-0 text-[#008953] group-hover:text-white transition-colors" />
+                                                            <span>Surat</span>
                                                         </button>
                                                     ) : (
                                                         <span className="text-xs text-slate-400">-</span>
@@ -624,17 +530,11 @@ export default function TeacherAttendancesIndex({
                                                             checkOutUrl: att.check_out_selfie_url,
                                                             checkOutTime: att.check_out_time ? `${att.check_out_time} WIB` : undefined,
                                                         })}
-                                                        className="group relative size-11 rounded-xl overflow-hidden border border-slate-200 mx-auto block hover:opacity-90 shadow-2xs cursor-pointer"
+                                                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-[#008953] hover:text-white hover:border-[#008953] transition-all shadow-2xs cursor-pointer group"
                                                         title="Lihat foto selfie presensi"
                                                     >
-                                                        <img
-                                                            src={att.selfie_url || att.check_out_selfie_url!}
-                                                            alt="Selfie Presensi"
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                                            <Eye className="size-3.5 text-white" />
-                                                        </div>
+                                                        <Camera className="size-3.5 shrink-0 text-[#008953] group-hover:text-white transition-colors" />
+                                                        <span>Foto</span>
                                                     </button>
                                                 ) : (
                                                     <span className="text-xs text-slate-400">-</span>
@@ -674,29 +574,25 @@ export default function TeacherAttendancesIndex({
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-bold ${
-                                                                att.is_in_radius
-                                                                    ? 'bg-emerald-50 border border-emerald-200/70 text-[#008953]'
-                                                                    : 'bg-rose-50 border border-rose-200/70 text-rose-700'
-                                                            }`}>
-                                                                {att.is_in_radius ? (
-                                                                    <ShieldCheck className="size-3 text-[#008953]" />
-                                                                ) : (
-                                                                    <ShieldAlert className="size-3 text-rose-600" />
-                                                                )}
-                                                                {att.is_in_radius ? 'Di Dalam Radius' : 'Di Luar Radius'}
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <div className="flex items-center gap-1.5 text-xs font-bold">
+                                                            <span className={`size-2 shrink-0 rounded-full ${
+                                                                att.is_in_radius ? 'bg-[#008953]' : 'bg-rose-500'
+                                                            }`} />
+                                                            <span className={att.is_in_radius ? 'text-[#008953]' : 'text-rose-600'}>
+                                                                {att.is_in_radius ? 'Dalam Radius' : 'Luar Radius'}
                                                             </span>
-                                                            {att.check_in_distance !== null && (
-                                                                <span className="text-[11px] text-slate-500 font-mono">
-                                                                    ({att.check_in_distance}m dari titik kantor)
+                                                        </div>
+                                                        {att.check_in_distance !== null && (
+                                                            <div className="text-[11px] text-slate-400 font-mono">
+                                                                <span className={att.is_in_radius ? 'text-slate-600 font-medium' : 'text-rose-600/90 font-semibold'}>
+                                                                    {att.check_in_distance >= 1000
+                                                                        ? `${(att.check_in_distance / 1000).toFixed(1)} km`
+                                                                        : `${att.check_in_distance} m`}
                                                                 </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-[11px] text-slate-400">
-                                                            Batas radius: <strong>{att.radius_limit}m</strong>
-                                                        </div>
+                                                                <span className="text-slate-400"> (maks {att.radius_limit}m)</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </td>
